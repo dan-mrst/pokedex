@@ -5,6 +5,9 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+import { typeTranslations } from "@/lib/pokeapi";
+import { ProcessedPokemon } from "@/lib/types";
+
 interface PokemonCardProps {
   pokemon: ProcessedPokemon;
 }
@@ -15,18 +18,19 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
       <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
         <CardContent className="p-4">
           <div className="text-center">
-            {/* 💡 課題: ポケモン画像を表示してください */}
-            {/* - Imageコンポーネントを使用 */}
-            {/* - pokemon.imageUrl を src に設定 */}
-            {/* - レスポンシブ対応 */}
+            <Image
+              src={pokemon.imageUrl}
+              width={240}
+              height={240}
+              alt=""
+            ></Image>
 
-            {/* 💡 課題: ポケモン番号を3桁で表示してください（例: No. 001） */}
+            <div>{pokemon.id.toString().padStart(3, "0")}</div>
 
-            {/* 💡 課題: ポケモンの日本語名を表示してください */}
-
-            {/* 💡 課題: タイプをBadgeで表示してください */}
-            {/* - pokemon.types をmap()で処理 */}
-            {/* - typeTranslations で日本語変換 */}
+            <div>{pokemon.japaneseName}</div>
+            {pokemon.types.map((type: string, i: number) => (
+              <Badge key={i}>{typeTranslations[type]}</Badge>
+            ))}
           </div>
         </CardContent>
       </Card>
