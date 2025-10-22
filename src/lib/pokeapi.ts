@@ -5,11 +5,15 @@ import {
   Pokemon,
   PokemonSpeciesDetail,
   ProcessedPokemon,
+  PokemonForSearch,
   PaginationInfo,
 } from "@/lib/types";
 
-const BASE_URL = "https://pokeapi.co/api/v2";
-const SAFE_POKEMON_LIMIT = 1302;
+import {
+  SAFE_POKEMON_LIMIT,
+  BASE_URL,
+  POKEMON_ID_UPPER,
+} from "@/lib/constants";
 
 /**
  * ポケモン一覧を取得する
@@ -98,14 +102,18 @@ export async function getProcessedPokemonList(
   pokemon: ProcessedPokemon[];
   pagination: PaginationInfo;
 }> {
+  const requestLimit =
+    page * limit <= POKEMON_ID_UPPER
+      ? limit
+      : POKEMON_ID_UPPER - (page - 1) * limit;
   const pokemonListRes = await fetchPokemonList(
-    limit,
+    requestLimit,
     (page - 1) * limit
   ).catch(() => {
     throw "Pokemon List Response Error";
   });
 
-  const count = pokemonListRes.count;
+  const count = POKEMON_ID_UPPER;
   const next = pokemonListRes.next;
   const previous = pokemonListRes.previous;
 
@@ -114,8 +122,8 @@ export async function getProcessedPokemonList(
   const pagination = {
     currentPage: page,
     totalPages: totalPages,
-    hasNext: next != null,
-    hasPrev: previous != null,
+    hasNext: next != null && page + 1 <= totalPages,
+    hasPrev: previous != null && page > 1,
     totalCount: count,
   };
 
@@ -183,4 +191,48 @@ export function getJapaneseGenus(genera: Genus[]): string | undefined {
   const en = genera.find((item) => item.language.name === "en")?.genus;
 
   return hrkt ?? ja ?? en;
+}
+
+/**
+ * ID/Nameから直接ProcessedPokemonを取得
+ * （fetchPokemon + processPokemon）
+ */
+export async function getProcessedPokemon(
+  idOrName: string | number
+): Promise<ProcessedPokemon> {
+  const pokemon = await fetchPokemon(idOrName);
+
+  return processPokemon(pokemon);
+}
+
+export async function getPokemonSearchList(
+  n: number
+): Promise<PokemonForSearch[]> {
+  const pokemonListRes = await fetchPokemonList(n, 0).catch(() => {
+    throw "Pokemon List Response Error";
+  });
+
+  const pokemonSpeciesURLs = pokemonListRes.results.map((pokemon) =>
+    pokemon.url.replace(`/pokemon/`, "/pokemon-species/")
+  );
+
+  const pokemons = await Promise.allSettled(
+    pokemonSpeciesURLs.map((url) => fetchPokemonSpeciesDetail(url))
+  ).then((result) =>
+    result
+      .filter((data) => data.status === "fulfilled")
+      .map((data) => data.value)
+  );
+
+  const searchPokemons = await Promise.all(
+    pokemons.map((pokemon) => {
+      return {
+        id: pokemon.id,
+        name: pokemon.name,
+        japaneseName: getJapaneseName(pokemon.names) ?? pokemon.name,
+      };
+    })
+  );
+
+  return searchPokemons;
 }

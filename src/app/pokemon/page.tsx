@@ -3,6 +3,7 @@ import { Loading } from "@/components/loading";
 import { getProcessedPokemonList } from "@/lib/pokeapi";
 
 import { PokemonCard } from "@/components/pokemon-card";
+import { PaginationComponent } from "@/components/pagination";
 
 interface SearchParams {
   page?: string;
@@ -30,18 +31,23 @@ export default async function PokemonListPage({ searchParams }: Props) {
 async function PokemonListContent({ page }: { page: number }) {
   // 💡 課題: getProcessedPokemonList()を使ってポケモンデータを取得
   try {
-    const list = await getProcessedPokemonList(page, 20);
+    const processedList = await getProcessedPokemonList(page, 20);
     return (
-      <ul className="flex gap-8 flex-wrap">
-        {list.pokemon.map((item) => (
-          <li key={item.id}>
-            <PokemonCard pokemon={item}></PokemonCard>
-          </li>
-        ))}
-      </ul>
+      <div>
+        <ul className="flex gap-8 flex-wrap">
+          {processedList.pokemon.map((item) => (
+            <li key={item.id}>
+              <PokemonCard pokemon={item}></PokemonCard>
+            </li>
+          ))}
+        </ul>
+        <PaginationComponent
+          pagination={processedList.pagination}
+          basePath={"/pokemon"}
+        ></PaginationComponent>
+      </div>
     );
   } catch {
     return <div>ERROR</div>;
   }
-  // 💡 課題: PaginationComponentでページング
 }

@@ -112,6 +112,12 @@ interface ProcessedAbility extends PokemonAbility {
   processed?: string;
 }
 
+export interface SearchPokemon {
+  id: number;
+  name: string;
+  japaneseName: string;
+}
+
 // ページネーション情報
 export interface PaginationInfo {
   currentPage: number;
