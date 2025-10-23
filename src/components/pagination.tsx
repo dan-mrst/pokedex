@@ -26,7 +26,9 @@ export function PaginationComponent({
       : "";
 
   const baseQuery =
-    queryParmStr === "" ? basePath + "?" : basePath + `?${queryParmStr}&`;
+    queryParmStr === ""
+      ? basePath + "?"
+      : basePath.substring(0, basePath.indexOf("?")) + `?${queryParmStr}&`;
 
   const { currentPage, totalPages, hasNext, hasPrev } = pagination;
 

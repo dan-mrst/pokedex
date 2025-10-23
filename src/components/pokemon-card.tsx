@@ -15,7 +15,10 @@ interface PokemonCardProps {
 export function PokemonCard({ pokemon }: PokemonCardProps) {
   return (
     <Link href={`/pokemon/${pokemon.id}`}>
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+      <Card
+        className="hover:shadow-lg transition-shadow cursor-pointer h-full"
+        data-name={pokemon.name}
+      >
         <CardContent className="p-4">
           <div className="text-center">
             <Image
@@ -28,9 +31,6 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
             <div>{pokemon.id.toString().padStart(3, "0")}</div>
 
             <div>{pokemon.japaneseName}</div>
-            {pokemon.types.map((type: string, i: number) => (
-              <Badge key={i}>{typeTranslations[type]}</Badge>
-            ))}
           </div>
         </CardContent>
       </Card>

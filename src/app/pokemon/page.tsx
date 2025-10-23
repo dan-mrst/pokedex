@@ -5,6 +5,8 @@ import { getProcessedPokemonList } from "@/lib/pokeapi";
 import { PokemonCard } from "@/components/pokemon-card";
 import { PaginationComponent } from "@/components/pagination";
 
+import { LIST_PER_PAGE } from "@/lib/constants";
+
 interface SearchParams {
   page?: string;
 }
@@ -29,9 +31,8 @@ export default async function PokemonListPage({ searchParams }: Props) {
 }
 
 async function PokemonListContent({ page }: { page: number }) {
-  // 💡 課題: getProcessedPokemonList()を使ってポケモンデータを取得
   try {
-    const processedList = await getProcessedPokemonList(page, 20);
+    const processedList = await getProcessedPokemonList(page, LIST_PER_PAGE);
     return (
       <div>
         <ul className="flex gap-8 flex-wrap">

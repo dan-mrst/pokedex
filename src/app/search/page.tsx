@@ -1,11 +1,15 @@
 import { Suspense } from "react";
 import { SearchForm } from "@/components/search-form";
 import { Loading } from "@/components/loading";
-import { getPokemonSearchList, getProcessedPokemon } from "@/lib/pokeapi";
+import {
+  POKEMON_ID_UPPER,
+  getPokemonSearchList,
+  getProcessedPokemon,
+} from "@/lib/pokeapi";
 import { PokemonCard } from "@/components/pokemon-card";
 import { PaginationComponent } from "@/components/pagination";
-import { POKEMON_ID_UPPER } from "@/lib/constants";
 import { PaginationInfo } from "@/lib/types";
+import { SEARCH_PER_PAGE } from "@/lib/constants";
 import { hiraToKata } from "@/lib/functions";
 
 interface SearchParams {
@@ -37,15 +41,6 @@ export default async function SearchPage({ searchParams }: Props) {
     </div>
   );
 }
-async function PokemonSearchResult_({
-  query,
-  page,
-}: {
-  query: string;
-  page: number;
-}) {
-  return <div>{query}</div>;
-}
 
 async function PokemonSearchResult({
   query,
@@ -54,24 +49,26 @@ async function PokemonSearchResult({
   query: string;
   page: number;
 }) {
-  const kataOrEn = hiraToKata(query);
+  const kata = hiraToKata(query);
   try {
-    const matchedPokemonList = pokemonSearchList.filter((item) => {
-      return (
-        item.japaneseName.indexOf(kataOrEn) >= 0 ||
-        item.name.indexOf(kataOrEn) >= 0
-      );
+    const matchedPokemonList = pokemonSearchList.filter((pokemon) => {
+      return pokemon.japaneseName.indexOf(kata) >= 0;
     });
 
+    const pagedPokemonList = matchedPokemonList.filter(
+      (pokemon, i) =>
+        i > SEARCH_PER_PAGE * (page - 1) - 1 && i < SEARCH_PER_PAGE * page
+    );
+
     const processedList = await Promise.allSettled(
-      matchedPokemonList.map((pokemon) => getProcessedPokemon(pokemon.id))
+      pagedPokemonList.map((pokemon) => getProcessedPokemon(pokemon.id))
     ).then((result) =>
       result
         .filter((data) => data.status === "fulfilled")
         .map((data) => data.value)
     );
 
-    const totalPages = Math.ceil(matchedPokemonList.length / 10);
+    const totalPages = Math.ceil(matchedPokemonList.length / SEARCH_PER_PAGE);
 
     const pagination: PaginationInfo = {
       currentPage: page,
@@ -83,6 +80,12 @@ async function PokemonSearchResult({
 
     return (
       <div>
+        <div>
+          <p>{`「${query}」の検索結果：${pagination.totalCount}件見つかりました`}</p>
+          <p>{`${SEARCH_PER_PAGE * (page - 1) + 1}〜${
+            SEARCH_PER_PAGE * page
+          }／${pagination.totalCount}`}</p>
+        </div>
         <ul className="flex gap-8 flex-wrap">
           {processedList.map((item) => (
             <li key={item.id}>
@@ -96,7 +99,7 @@ async function PokemonSearchResult({
         ></PaginationComponent>
       </div>
     );
-  } catch {
-    return <div>ERROR</div>;
+  } catch (e) {
+    return <div>エラーが発生しました。</div>;
   }
 }

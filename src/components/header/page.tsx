@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import styles from "./header.module.css";
 
 export function Header() {
   const pathname = usePathname();
@@ -26,8 +27,8 @@ export function Header() {
                     href={item.href}
                     className={
                       pathname === item.href
-                        ? "navlink navlink--active"
-                        : "navlink"
+                        ? `${styles["navlink"]} ${styles["navlink--active"]}`
+                        : `${styles["navlink"]}`
                     }
                   >
                     {item.label}

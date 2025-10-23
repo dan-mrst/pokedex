@@ -1,0 +1,12 @@
+@reference "tailwindcss";
+
+.detail {
+  @apply flex flex-col gap-4;
+}
+
+.detail__item {
+  @apply flex flex-col;
+}
+.detail__title {
+  @apply text-xl font-bold;
+}

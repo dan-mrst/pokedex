@@ -1,6 +1,10 @@
-export interface NamedApiResource {
+interface NamedApiResource {
   name: string;
   url: string;
+}
+
+export interface MultiLangItem {
+  language: NamedApiResource;
 }
 
 /**
@@ -43,15 +47,6 @@ interface PokemonType {
 }
 
 /**
- * Pokemon型の補助
- */
-interface PokemonAbility {
-  ability: NamedApiResource | null;
-  is_hidden: boolean;
-  slot: number;
-}
-
-/**
  * PokemonSprites型の原型
  */
 interface PokemonSprite {
@@ -78,14 +73,12 @@ interface PokemonSprites extends PokemonSprite {
   };
 }
 
-// 💡 課題: 以下の型も定義してください
-// - PokemonSpeciesDetail（種別詳細情報）
-
 export interface PokemonSpeciesDetail {
   genera: Genus[];
   id: number;
   name: string;
   names: Name[];
+  evolution_chain: { url: string };
 }
 
 export interface Genus {
@@ -95,7 +88,7 @@ export interface Genus {
 
 /**
  * アプリ内で使用する処理済みポケモンデータ
- * */
+ */
 export interface ProcessedPokemon {
   id: number;
   name: string;
@@ -108,14 +101,112 @@ export interface ProcessedPokemon {
   abilities: ProcessedAbility[];
 }
 
-interface ProcessedAbility extends PokemonAbility {
-  processed?: string;
+/**
+ * Pokemon型内の特性
+ */
+export interface PokemonAbility {
+  ability: NamedApiResource | null;
+  is_hidden: boolean;
+  slot: number;
 }
 
-export interface SearchPokemon {
+/**
+ * Abilityのレスポンス
+ */
+export interface PokemonAbilityDetail {
+  flavor_text_entries: FlavorText[];
+  id: number;
+  name: string;
+  names: Name[];
+}
+
+/**
+ * PokemonAbilityDetailの補助：特性の説明
+ */
+export interface FlavorText {
+  flavor_text: string;
+  language: NamedApiResource;
+  version_group: NamedApiResource;
+}
+
+/**
+ * アプリ内で使用する処理済み特性データ
+ */
+export interface ProcessedAbility {
+  flavor_text: string;
+  id: number;
+  japaneseName: string;
+  name: string;
+  is_hidden: boolean;
+}
+
+/**
+ * 検索機能に用いる全リスト用のPokemon省略版
+ */
+export interface PokemonForSearch {
   id: number;
   name: string;
   japaneseName: string;
+}
+
+/*-- 進化 --*/
+
+/**
+ * evolution-chainのレスポンス
+ */
+export interface EvolutionChain {
+  id: number;
+  chain: EvolvesTo;
+  baby_trigger_item: NamedApiResource | null;
+}
+
+/**
+ * evolves_toの再帰的型
+ */
+export interface EvolvesTo {
+  evolution_details: EvolutionDetails;
+  evolves_to: EvolvesTo[];
+  is_baby: boolean;
+  species: NamedApiResource;
+}
+
+/**
+ * 進化の詳細
+ */
+export interface EvolutionDetails {
+  gender: number | null;
+  held_item: NamedApiResource | null;
+  item: NamedApiResource | null;
+  known_move: NamedApiResource | null;
+  known_move_type: NamedApiResource | null;
+  location: NamedApiResource | null;
+  min_affection: number | null;
+  min_beauty: number | null;
+  min_happiness: number | null;
+  min_level: number | null;
+  needs_overworld_rain: boolean;
+  party_species: NamedApiResource;
+  party_type: NamedApiResource;
+  region_id: number | null;
+  relative_physical_stats: number | null;
+  time_of_day: string;
+  trade_species: NamedApiResource | null;
+  trigger: NamedApiResource;
+  turn_upside_down: boolean;
+}
+
+/**
+ * アプリ内で使用する処理済み進化データ
+ */
+export interface ProcessedEvolutionChain extends EvolutionChain {
+  chain: ProcessedEvolutionTo;
+}
+export interface ProcessedEvolutionTo extends EvolvesTo {
+  evolves_to: ProcessedEvolutionTo[];
+  id: number;
+  name: string;
+  japaneseName: string;
+  imageUrl: string;
 }
 
 // ページネーション情報
@@ -125,4 +216,14 @@ export interface PaginationInfo {
   hasNext: boolean;
   hasPrev: boolean;
   totalCount: number;
+}
+
+/**
+ * evolution-triggerのレスポンス
+ */
+export interface EvolutionTrigger {
+  id: number;
+  name: string;
+  names: Name[];
+  pokemon_species: NamedApiResource[];
 }

@@ -1,25 +1,40 @@
 import {
   Name,
+  FlavorText,
   Genus,
+  MultiLangItem,
   PokemonListResponse,
   Pokemon,
   PokemonSpeciesDetail,
+  PokemonAbility,
+  ProcessedAbility,
+  PokemonAbilityDetail,
   ProcessedPokemon,
   PokemonForSearch,
   PaginationInfo,
+  EvolutionChain,
+  ProcessedEvolutionChain,
+  EvolvesTo,
+  ProcessedEvolutionTo,
+  EvolutionDetails,
+  EvolutionTrigger,
 } from "@/lib/types";
 
-import {
-  SAFE_POKEMON_LIMIT,
-  BASE_URL,
-  POKEMON_ID_UPPER,
-} from "@/lib/constants";
+import { BASE_URL, LIST_PER_PAGE } from "@/lib/constants";
+
+export const POKEMON_ID_UPPER = await (async () => {
+  const res = await fetch(`${BASE_URL}/pokemon-species/?limit=0`);
+  const data: PokemonListResponse = await res.json();
+  return data.count;
+})();
+
+const SAFE_POKEMON_LIMIT = POKEMON_ID_UPPER - 20;
 
 /**
  * ポケモン一覧を取得する
  */
 export async function fetchPokemonList(
-  limit: number = 20,
+  limit: number = LIST_PER_PAGE,
   offset: number = 0
 ): Promise<PokemonListResponse> {
   const res = await fetch(
@@ -54,6 +69,16 @@ export async function fetchPokemonSpeciesDetail(
   const data = await res.json();
   return data;
 }
+/**
+ * ポケモンの特性詳細情報を取得する
+ */
+export async function fetchPokemonAbilityDetail(
+  url: string
+): Promise<PokemonAbilityDetail> {
+  const res = await fetch(url);
+  const data = await res.json();
+  return data;
+}
 
 /**
  * ポケモンの画像URLを取得する
@@ -67,7 +92,7 @@ export function getPokemonImageUrl(sprites: Pokemon["sprites"]): string {
       ? sprites.other["home"]["front_default"]
       : sprites["front_default"];
 
-  return imgUrl ?? "";
+  return imgUrl ?? "/noimage.png";
 }
 
 // タイプ名の日本語変換テーブル
@@ -97,7 +122,7 @@ export const typeTranslations: Record<string, string> = {
  */
 export async function getProcessedPokemonList(
   page: number = 1,
-  limit: number = 20
+  limit: number = LIST_PER_PAGE
 ): Promise<{
   pokemon: ProcessedPokemon[];
   pagination: PaginationInfo;
@@ -156,6 +181,14 @@ async function processPokemon(pokemon: Pokemon): Promise<ProcessedPokemon> {
     throw "Pokemon species detail Response Error";
   });
 
+  const processedAbilities = await Promise.allSettled(
+    pokemon.abilities.map((ability) => processAbility(ability))
+  ).then((result) =>
+    result
+      .filter((data) => data.status === "fulfilled")
+      .map((data) => data.value)
+  );
+
   const processed: ProcessedPokemon = {
     id: pokemon.id,
     name: pokemon.name,
@@ -165,32 +198,60 @@ async function processPokemon(pokemon: Pokemon): Promise<ProcessedPokemon> {
     height: pokemon.height,
     weight: pokemon.weight,
     genus: getJapaneseGenus(speciesDetail.genera) ?? "",
-    abilities: pokemon.abilities,
+    abilities: processedAbilities,
   };
 
   return processed;
 }
 
-/**
- * 多言語名前配列から日本語名を取得する
- */
-export function getJapaneseName(names: Name[]): string | undefined {
-  const hrkt = names.find((item) => item.language.name === "ja-Hrkt")?.name;
-  const ja = names.find((item) => item.language.name === "ja")?.name;
+async function processAbility(
+  ability: PokemonAbility
+): Promise<ProcessedAbility> {
+  if (!ability.ability) return Promise.reject();
 
-  return hrkt ?? ja;
+  const abilityDetail = await fetchPokemonAbilityDetail(
+    ability.ability.url
+  ).catch(() => {
+    throw "Pokemon ability detail Response Error";
+  });
+
+  const processedAbility: ProcessedAbility = {
+    flavor_text:
+      getJapaneseFlavor(abilityDetail.flavor_text_entries) ?? "説明なし",
+    id: abilityDetail.id,
+    name: abilityDetail.name,
+    japaneseName: getJapaneseName(abilityDetail.names) ?? abilityDetail.name,
+    is_hidden: ability.is_hidden,
+  };
+
+  return processedAbility;
 }
 
-/**
- * 多言語分類配列から日本語名を取得する
- */
-export function getJapaneseGenus(genera: Genus[]): string | undefined {
-  const hrkt = genera.find((item) => item.language.name === "ja-Hrkt")?.genus;
-  const ja = genera.find((item) => item.language.name === "ja")?.genus;
+function getJapanese<T extends MultiLangItem>(
+  items: T[],
+  targetKey: keyof T,
+  en_fallback: boolean = false
+): string | undefined {
+  const hrkt = items.find((item) => item.language.name === "ja-Hrkt")?.[
+    targetKey
+  ];
+  const ja = items.find((item) => item.language.name === "ja")?.[targetKey];
 
-  const en = genera.find((item) => item.language.name === "en")?.genus;
+  const en = en_fallback
+    ? items.find((item) => item.language.name === "en")?.[targetKey]
+    : undefined;
 
-  return hrkt ?? ja ?? en;
+  return (hrkt ?? ja ?? en) as string | undefined;
+}
+
+function getJapaneseName(names: Name[]) {
+  return getJapanese(names, "name");
+}
+function getJapaneseFlavor(flavors: FlavorText[]) {
+  return getJapanese(flavors, "flavor_text");
+}
+function getJapaneseGenus(genera: Genus[]) {
+  return getJapanese(genera, "genus", true);
 }
 
 /**
@@ -208,9 +269,7 @@ export async function getProcessedPokemon(
 export async function getPokemonSearchList(
   n: number
 ): Promise<PokemonForSearch[]> {
-  const pokemonListRes = await fetchPokemonList(n, 0).catch(() => {
-    throw "Pokemon List Response Error";
-  });
+  const pokemonListRes = await fetchPokemonList(n, 0);
 
   const pokemonSpeciesURLs = pokemonListRes.results.map((pokemon) =>
     pokemon.url.replace(`/pokemon/`, "/pokemon-species/")
@@ -235,4 +294,57 @@ export async function getPokemonSearchList(
   );
 
   return searchPokemons;
+}
+
+/*-- 進化 --*/
+
+async function fetchEvolutionChain(url: string): Promise<EvolutionChain> {
+  const res = await fetch(url);
+  const data = await res.json();
+  return data;
+}
+
+export async function getProcessedEvolutionChain(
+  idOrName: string | number
+): Promise<ProcessedEvolutionChain> {
+  const pokemon = await fetchPokemonSpeciesDetail(
+    `${BASE_URL}/pokemon-species/${idOrName}`
+  );
+
+  const chain = await fetchEvolutionChain(pokemon.evolution_chain.url);
+
+  const processedEvolution = await processEvolution(chain.chain);
+
+  const processed: ProcessedEvolutionChain = {
+    id: chain.id,
+    baby_trigger_item: chain.baby_trigger_item,
+    chain: processedEvolution,
+  };
+
+  return processed;
+}
+
+async function processEvolution(
+  evolution: EvolvesTo
+): Promise<ProcessedEvolutionTo> {
+  const speciesDetail = await fetchPokemonSpeciesDetail(evolution.species.url);
+
+  const pokemon = await fetchPokemon(speciesDetail.id);
+
+  const evolvesTo = await Promise.all(
+    evolution.evolves_to.map((evo) => processEvolution(evo))
+  );
+
+  const processed: ProcessedEvolutionTo = {
+    evolution_details: evolution.evolution_details,
+    is_baby: evolution.is_baby,
+    species: evolution.species,
+    evolves_to: evolvesTo,
+    id: speciesDetail.id,
+    name: speciesDetail.name,
+    japaneseName: getJapaneseName(speciesDetail.names) ?? speciesDetail.name,
+    imageUrl: getPokemonImageUrl(pokemon.sprites),
+  };
+
+  return processed;
 }

@@ -1,15 +1,6 @@
 @import "tailwindcss";
 @tailwind utilities;
 
-@layer components {
-  .navlink {
-    @apply hover:bg-blue-600;
-  }
-  .navlink--active {
-    @apply text-blue-700;
-  }
-}
-
 /* shadcn */
 @custom-variant dark (&:is(.dark *));
 

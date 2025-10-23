@@ -1,0 +1,7 @@
+@reference "tailwindcss";
+.navlink {
+  @apply hover:bg-blue-600;
+}
+.navlink--active {
+  @apply text-blue-700;
+}
