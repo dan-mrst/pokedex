@@ -1,6 +1,8 @@
 import { Suspense } from "react";
+import { Metadata } from "next";
 import { SearchForm } from "@/components/search-form";
 import { Loading } from "@/components/loading";
+import { ToList } from "@/components/to-list";
 import {
   POKEMON_ID_UPPER,
   getPokemonSearchList,
@@ -21,6 +23,14 @@ interface Props {
   searchParams: Promise<SearchParams>;
 }
 
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  return {
+    title: "検索",
+  };
+}
+
 const pokemonSearchList = await getPokemonSearchList(POKEMON_ID_UPPER);
 
 export default async function SearchPage({ searchParams }: Props) {
@@ -38,6 +48,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <PokemonSearchResult query={query} page={page}></PokemonSearchResult>
         </Suspense>
       )}
+      <ToList></ToList>
     </div>
   );
 }

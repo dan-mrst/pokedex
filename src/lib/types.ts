@@ -1,4 +1,4 @@
-interface NamedApiResource {
+export interface NamedApiResource {
   name: string;
   url: string;
 }
@@ -86,14 +86,17 @@ export interface Genus {
   language: NamedApiResource;
 }
 
+export interface pokemonBasic {
+  id: number;
+  imageUrl: string;
+  name: string;
+  japaneseName: string;
+}
+
 /**
  * アプリ内で使用する処理済みポケモンデータ
  */
-export interface ProcessedPokemon {
-  id: number;
-  name: string;
-  japaneseName: string;
-  imageUrl: string;
+export interface ProcessedPokemon extends pokemonBasic {
   types: string[];
   height: number;
   weight: number;
@@ -164,7 +167,7 @@ export interface EvolutionChain {
  * evolves_toの再帰的型
  */
 export interface EvolvesTo {
-  evolution_details: EvolutionDetails;
+  evolution_details: EvolutionDetails[];
   evolves_to: EvolvesTo[];
   is_baby: boolean;
   species: NamedApiResource;
@@ -201,12 +204,17 @@ export interface EvolutionDetails {
 export interface ProcessedEvolutionChain extends EvolutionChain {
   chain: ProcessedEvolutionTo;
 }
-export interface ProcessedEvolutionTo extends EvolvesTo {
+export interface ProcessedEvolutionTo extends EvolvesTo, pokemonBasic {
   evolves_to: ProcessedEvolutionTo[];
-  id: number;
-  name: string;
-  japaneseName: string;
-  imageUrl: string;
+  conditions: ProcessedEvolutionDetails[];
+}
+
+export interface ProcessedEvolutionDetails {
+  trigger: string;
+  requirements: {
+    title: string;
+    description: string;
+  }[];
 }
 
 // ページネーション情報

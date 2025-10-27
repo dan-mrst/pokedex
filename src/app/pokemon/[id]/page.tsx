@@ -1,7 +1,9 @@
 import { Suspense } from "react";
+import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { Loading } from "@/components/loading";
+import { ToList } from "@/components/to-list";
 import {
   Card,
   CardHeader,
@@ -14,14 +16,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   POKEMON_ID_UPPER,
-  typeTranslations,
   getProcessedPokemon,
+  getPokemonForSearch,
 } from "@/lib/pokeapi";
+import { typeTranslations } from "@/lib/constants";
 
 import styles from "./pokemon.module.css";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const pokemon = await getPokemonForSearch(resolvedParams.id);
+
+  return {
+    title: pokemon.japaneseName,
+  };
 }
 
 export default async function PokemonDetailPage({ params }: Props) {
@@ -33,6 +45,7 @@ export default async function PokemonDetailPage({ params }: Props) {
       <Suspense fallback={<Loading />}>
         <PokemonDetailContent id={id} />
       </Suspense>
+      <ToList></ToList>
     </div>
   );
 }
@@ -43,7 +56,6 @@ async function PokemonDetailContent({ id }: { id: number }) {
   const next =
     id + 1 <= POKEMON_ID_UPPER ? await getProcessedPokemon(id + 1) : null;
   const prev = id - 1 > 0 ? await getProcessedPokemon(id - 1) : null;
-  // 💡 課題: 基本情報（名前、画像、タイプ、高さ、重さ）を表示
   return (
     <>
       <nav className="flex justify-between">

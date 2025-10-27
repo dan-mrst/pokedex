@@ -15,6 +15,14 @@ interface Props {
   searchParams: Promise<SearchParams>;
 }
 
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  return {
+    title: "一覧",
+  };
+}
+
 export default async function PokemonListPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const currentPage = Number(resolvedParams.page) || 1;

@@ -1,7 +1,18 @@
-import { Header } from "@/components/header/page";
+import { Header } from "@/components/header/component";
 import "@/app/globals.css";
 
-export default function RootLayout({ children }) {
+export const metadata = {
+  title: {
+    template: "%s｜ポケモン図鑑",
+    default: "ポケモン図鑑",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ja">
       <body>

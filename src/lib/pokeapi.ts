@@ -1,5 +1,6 @@
 import {
   Name,
+  NamedApiResource,
   FlavorText,
   Genus,
   MultiLangItem,
@@ -17,10 +18,15 @@ import {
   EvolvesTo,
   ProcessedEvolutionTo,
   EvolutionDetails,
-  EvolutionTrigger,
+  ProcessedEvolutionDetails,
 } from "@/lib/types";
 
-import { BASE_URL, LIST_PER_PAGE } from "@/lib/constants";
+import {
+  BASE_URL,
+  LIST_PER_PAGE,
+  evolutionDetailTranslations,
+  indexedTerms,
+} from "@/lib/constants";
 
 export const POKEMON_ID_UPPER = await (async () => {
   const res = await fetch(`${BASE_URL}/pokemon-species/?limit=0`);
@@ -52,10 +58,8 @@ export async function fetchPokemonList(
 /**
  * 個別のポケモン詳細情報を取得する
  */
-export async function fetchPokemon(
-  idOrName: string | number
-): Promise<Pokemon> {
-  const res = await fetch(`${BASE_URL}/pokemon/${idOrName}`);
+export async function fetchPokemon(url: string): Promise<Pokemon> {
+  const res = await fetch(url);
   const data = await res.json();
   return data;
 }
@@ -84,7 +88,6 @@ export async function fetchPokemonAbilityDetail(
  * ポケモンの画像URLを取得する
  */
 export function getPokemonImageUrl(sprites: Pokemon["sprites"]): string {
-  // 💡 課題: official-artwork → home → front_default の優先順位で画像URLを取得
   const imgUrl =
     "official-artwork" in sprites.other
       ? sprites.other["official-artwork"]["front_default"]
@@ -94,28 +97,6 @@ export function getPokemonImageUrl(sprites: Pokemon["sprites"]): string {
 
   return imgUrl ?? "/noimage.png";
 }
-
-// タイプ名の日本語変換テーブル
-export const typeTranslations: Record<string, string> = {
-  normal: "ノーマル",
-  fire: "ほのお",
-  water: "みず",
-  grass: "くさ",
-  electric: "でんき",
-  ice: "こおり",
-  fighting: "かくとう",
-  poison: "どく",
-  ground: "じめん",
-  flying: "ひこう",
-  psychic: "エスパー",
-  bug: "むし",
-  rock: "いわ",
-  ghost: "ゴースト",
-  dragon: "ドラゴン",
-  dark: "あく",
-  steel: "はがね",
-  fairy: "フェアリー",
-};
 
 /**
  * ポケモン一覧を処理済みデータとして取得する
@@ -156,16 +137,12 @@ export async function getProcessedPokemonList(
     parseInt(pokemon.url.replace(`${BASE_URL}/pokemon/`, ""))
   );
 
-  const pokemons = await Promise.allSettled(
-    pokemonIDs.map((ID) => fetchPokemon(ID))
+  const processedPokemons = await Promise.allSettled(
+    pokemonIDs.map((ID) => getProcessedPokemon(ID))
   ).then((result) =>
     result
       .filter((data) => data.status === "fulfilled")
       .map((data) => data.value)
-  );
-
-  const processedPokemons = await Promise.all(
-    pokemons.map((pokemon) => processPokemon(pokemon))
   );
 
   return { pokemon: processedPokemons, pagination: pagination };
@@ -261,39 +238,45 @@ function getJapaneseGenus(genera: Genus[]) {
 export async function getProcessedPokemon(
   idOrName: string | number
 ): Promise<ProcessedPokemon> {
-  const pokemon = await fetchPokemon(idOrName);
+  const pokemon = await fetchPokemon(`${BASE_URL}/pokemon/${idOrName}`);
 
   return processPokemon(pokemon);
 }
 
+/**
+ * 検索用の軽量一覧
+ */
 export async function getPokemonSearchList(
   n: number
 ): Promise<PokemonForSearch[]> {
   const pokemonListRes = await fetchPokemonList(n, 0);
 
-  const pokemonSpeciesURLs = pokemonListRes.results.map((pokemon) =>
-    pokemon.url.replace(`/pokemon/`, "/pokemon-species/")
-  );
-
-  const pokemons = await Promise.allSettled(
-    pokemonSpeciesURLs.map((url) => fetchPokemonSpeciesDetail(url))
+  const searchPokemons = await Promise.allSettled(
+    pokemonListRes.results.map((pokemon) => getPokemonForSearch(pokemon.name))
   ).then((result) =>
     result
       .filter((data) => data.status === "fulfilled")
       .map((data) => data.value)
   );
 
-  const searchPokemons = await Promise.all(
-    pokemons.map((pokemon) => {
-      return {
-        id: pokemon.id,
-        name: pokemon.name,
-        japaneseName: getJapaneseName(pokemon.names) ?? pokemon.name,
-      };
-    })
+  return searchPokemons;
+}
+
+/**
+ * ID/Nameから直接PokemonForSearchを取得
+ */
+export async function getPokemonForSearch(
+  idOrName: number | string
+): Promise<PokemonForSearch> {
+  const detail = await fetchPokemonSpeciesDetail(
+    `${BASE_URL}/pokemon-species/${idOrName}`
   );
 
-  return searchPokemons;
+  return {
+    id: detail.id,
+    name: detail.name,
+    japaneseName: getJapaneseName(detail.names) ?? detail.name,
+  };
 }
 
 /*-- 進化 --*/
@@ -329,10 +312,13 @@ async function processEvolution(
 ): Promise<ProcessedEvolutionTo> {
   const speciesDetail = await fetchPokemonSpeciesDetail(evolution.species.url);
 
-  const pokemon = await fetchPokemon(speciesDetail.id);
+  const pokemon = await fetchPokemon(`${BASE_URL}/pokemon/${speciesDetail.id}`);
 
   const evolvesTo = await Promise.all(
     evolution.evolves_to.map((evo) => processEvolution(evo))
+  );
+  const conditions = await Promise.all(
+    evolution.evolution_details.map((detail) => processEvolutionDetail(detail))
   );
 
   const processed: ProcessedEvolutionTo = {
@@ -344,7 +330,128 @@ async function processEvolution(
     name: speciesDetail.name,
     japaneseName: getJapaneseName(speciesDetail.names) ?? speciesDetail.name,
     imageUrl: getPokemonImageUrl(pokemon.sprites),
+    conditions: conditions,
   };
 
   return processed;
+}
+
+async function processEvolutionDetail(
+  details: EvolutionDetails
+): Promise<ProcessedEvolutionDetails> {
+  const useBooleans = ["needs_overworld_rain", "turn_upside_down"];
+
+  /**
+   * 数値をそのまま使用
+   */
+  const useNumbers = [
+    "min_affection",
+    "min_beauty",
+    "min_happiness",
+    "min_level",
+  ];
+
+  /**
+   * 番号に用語を紐付け
+   */
+  const useIds = ["gender", "relative_physical_stats", "region_id"];
+
+  /**
+   * urlにリクエスト
+   */
+  const useNames = [
+    "held_item",
+    "item",
+    "known_move",
+    "known_move_type",
+    "location",
+    "party_species",
+    "party_type",
+    "trade_species",
+  ];
+
+  /**
+   * 文字列をそのまま使用
+   */
+  const useValues = ["time_of_day"];
+
+  /**
+   * 特殊条件を表示
+   */
+  const specialTriggers = ["shed", "tower-of-darkness", "tower-of-waters"];
+
+  const requirements: {
+    title: string;
+    description: string;
+  }[] = [];
+
+  for (const key of Object.keys(details) as (keyof EvolutionDetails)[]) {
+    if (details[key] === null || details[key] === "") continue;
+
+    if (
+      typeof details[key] === "boolean" &&
+      useBooleans.includes(key) &&
+      details[key]
+    ) {
+      requirements.push({
+        title: "特殊条件",
+        description: evolutionDetailTranslations[key] ?? key,
+      });
+    } else if (typeof details[key] === "number" && useNumbers.includes(key)) {
+      requirements.push({
+        title: evolutionDetailTranslations[key] ?? key,
+        description: `${details[key]}以上`,
+      });
+    } else if (typeof details[key] === "number" && useIds.includes(key)) {
+      requirements.push({
+        title: evolutionDetailTranslations[key] ?? key,
+        description: indexedTerms[key][`${details[key]}`],
+      });
+    } else if (typeof details[key] === "object" && useNames.includes(key)) {
+      const translate = await translateEvolutionRequirement(details[key]).catch(
+        () => null
+      );
+      requirements.push({
+        title: evolutionDetailTranslations[key] ?? key,
+        description:
+          translate ??
+          indexedTerms[key]?.[details[key]?.name ?? ""] ??
+          details[key]?.name,
+      });
+    } else if (typeof details[key] === "string" && useValues.includes(key)) {
+      requirements.push({
+        title: evolutionDetailTranslations[key] ?? key,
+        description: indexedTerms[key]?.[details[key]] ?? details[key],
+      });
+    }
+  }
+  if (specialTriggers.includes(details.trigger.name)) {
+    requirements.push({
+      title: "条件",
+      description: indexedTerms.special?.[details.trigger.name] ?? "-",
+    });
+  }
+
+  const processed: ProcessedEvolutionDetails = {
+    trigger: details.trigger.name,
+    requirements: requirements,
+  };
+
+  return processed;
+}
+
+async function fetchEvolutionRequirement(
+  url: string
+): Promise<{ names: Name[] }> {
+  const res = await fetch(url);
+  const data = await res.json();
+  return data;
+}
+async function translateEvolutionRequirement(
+  require: NamedApiResource | null
+): Promise<string | undefined> {
+  if (!require) return undefined;
+  const data = await fetchEvolutionRequirement(require.url);
+
+  return getJapanese(data.names, "name");
 }
