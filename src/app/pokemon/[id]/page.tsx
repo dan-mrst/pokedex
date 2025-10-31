@@ -14,12 +14,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+import { ChevronLeft, ChevronRight, Network } from "lucide-react";
+
 import {
   POKEMON_ID_UPPER,
   getProcessedPokemon,
   getPokemonForSearch,
 } from "@/lib/pokeapi";
-import { typeTranslations } from "@/lib/constants";
+import { typeTranslations, typeTextColor } from "@/lib/constants";
 
 import styles from "./pokemon.module.css";
 
@@ -41,11 +44,11 @@ export default async function PokemonDetailPage({ params }: Props) {
   const id = Number(resolvedParams.id);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="wrapper">
       <Suspense fallback={<Loading />}>
         <PokemonDetailContent id={id} />
       </Suspense>
-      <ToList></ToList>
+      <ToList />
     </div>
   );
 }
@@ -60,98 +63,157 @@ async function PokemonDetailContent({ id }: { id: number }) {
     <>
       <nav className="flex justify-between">
         {prev ? (
-          <Button variant="secondary">
-            <Link className="flex gap2" href={`./${prev.id}`}>
-              <Image src={prev.imageUrl} width={48} height={48} alt=""></Image>
-              <div>
-                <div>{prev.id.toString().padStart(3, "0")}</div>
-                <div>{prev.japaneseName}</div>
+          <Link className={`${styles.anchor}`} href={`./${prev.id}`}>
+            <ChevronLeft size={40} />
+            <div className={styles.anchorInner}>
+              <Image
+                src={prev.imageUrl}
+                width={72}
+                height={72}
+                alt=""
+                className={styles.anchorImage}
+              />
+              <div className={styles.anchorText}>
+                <div className="pokemon-id">
+                  <span className="hidden md:inline">No.</span>
+                  {prev.id.toString().padStart(3, "0")}
+                </div>
+                <div className={styles.anchorName}>{prev.japaneseName}</div>
               </div>
-            </Link>
-          </Button>
+            </div>
+          </Link>
         ) : (
           <Button className="invisible"></Button>
         )}
         {next ? (
-          <Button variant="secondary">
-            <Link className="flex gap2" href={`./${next.id}`}>
-              <Image src={next.imageUrl} width={48} height={48} alt=""></Image>
-              <div>
-                <div>{next.id.toString().padStart(3, "0")}</div>
-                <div>{next.japaneseName}</div>
+          <Link
+            className={`${styles.anchor} text-primary-900 hover:text-primary-500`}
+            href={`./${next.id}`}
+          >
+            <div className={styles.anchorInner}>
+              <Image
+                src={next.imageUrl}
+                width={72}
+                height={72}
+                alt=""
+                className={styles.anchorImage}
+              />
+              <div className={styles.anchorText}>
+                <div className="pokemon-id">
+                  <span className="hidden md:inline">No.</span>
+                  {next.id.toString().padStart(3, "0")}
+                </div>
+                <div className={styles.anchorName}>{next.japaneseName}</div>
               </div>
-            </Link>
-          </Button>
+            </div>
+            <ChevronRight size={40} className="shrink-0" />
+          </Link>
         ) : (
           <Button className="invisible"></Button>
         )}
       </nav>
-      <Card className="h-full">
+      <Card className="h-full mt-8">
         <CardHeader className="text-center">
-          <CardDescription>
+          <CardDescription className="pokemon-id text-sm">
             {`No.${pokemon.id.toString().padStart(3, "0")}`}
           </CardDescription>
-          <CardTitle className="text-3xl font-bold">
+          <CardTitle className="text-3xl font-bold text-secondary-950">
             {pokemon.japaneseName}
           </CardTitle>
-          <div className="text-sm">{pokemon.genus}</div>
+          <div className="text-base text-secondary-900">{pokemon.genus}</div>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-8">
-          <div className="flex justify-center">
+        <CardContent className="grid md:grid-cols-2 gap-8 px-8 sm:px-24 md:px-16">
+          <div className="flex flex-col items-center justify-center">
             <Image
               src={pokemon.imageUrl}
               width={320}
               height={320}
               alt=""
               className="object-contain"
-            ></Image>
+            />
+            <dl className="flex gap-4 items-center">
+              <div className={styles.figureItem}>
+                <dt>高さ</dt>
+                <dd>
+                  <span className={styles.figureNumber}>
+                    {pokemon.height / 10}
+                  </span>
+                  m
+                </dd>
+              </div>
+              ／
+              <div className={styles.figureItem}>
+                <dt>重さ</dt>
+                <dd>
+                  <span className={styles.figureNumber}>
+                    {pokemon.weight / 10}
+                  </span>
+                  kg
+                </dd>
+              </div>
+            </dl>
           </div>
-          <div className={styles["detail"]}>
-            <div className={styles["detail__item"]}>
-              <h2 className={styles["detail__title"]}>基本情報</h2>
-              <dl className={styles["detail__content"]}>
-                <div className="flex justify-between">
-                  <dt>高さ</dt>
-                  <dd>{`${pokemon.height / 10}m`}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt>重さ</dt>
-                  <dd>{`${pokemon.weight / 10}kg`}</dd>
-                </div>
-              </dl>
-            </div>
-            <div className={styles["detail__item"]}>
-              <h2 className={styles["detail__title"]}>タイプ</h2>
-              <div className={styles["detail__content"]}>
-                {pokemon.types.map((type: string, i: number) => (
-                  <Badge key={i}>{typeTranslations[type]}</Badge>
-                ))}
+          <div className={styles.detail}>
+            <div className={styles.item}>
+              <h2 className={styles.title}>タイプ</h2>
+              <div className={styles.content}>
+                <ul className={styles.types}>
+                  {pokemon.types.map((type: string, i: number) => (
+                    <li key={i}>
+                      <Badge
+                        className={`bg-type-${type} text-${typeTextColor(
+                          type
+                        )}`}
+                      >
+                        {typeTranslations[type]}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-            <div className={styles["detail__item"]}>
-              <h2 className={styles["detail__title"]}>特性</h2>
-              <dl>
-                {pokemon.abilities.map((ability, i) => {
-                  return (
-                    <div key={i} className="border rounded-lg p-3">
-                      <dt className="font-medium">{ability.japaneseName}</dt>
-                      <dd>
-                        {ability.is_hidden && <Badge>隠れ特性</Badge>}
-                        <div className="text-sm text-gray-600">
-                          {ability.flavor_text}
-                        </div>
-                      </dd>
-                    </div>
-                  );
-                })}
-              </dl>
+            <div className={styles.item}>
+              <h2 className={styles.title}>特性</h2>
+              <div className={styles.content}>
+                <dl className="flex flex-col gap-4">
+                  {pokemon.abilities.map((ability, i) => {
+                    return (
+                      <div
+                        key={i}
+                        className="border border-gray-500 rounded-lg relative overflow-hidden"
+                      >
+                        <dt className="px-2 py-1 bg-gray-700 text-white  flex justify-between items-center">
+                          {ability.japaneseName}
+                          {ability.is_hidden && (
+                            <div className="px-2 py-1 bg-white text-gray-700 text-sm w-fit leading-none rounded-sm font-bold">
+                              隠れ特性
+                            </div>
+                          )}
+                        </dt>
+                        <dd>
+                          <div className="text-sm text-gray-600 px-3 py-2">
+                            {ability.flavor_text}
+                          </div>
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+              </div>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center border-t-1 pt-4">
-          <Button variant="default">
-            <Link href={`/evolution/${id}`}>進化系統を見る</Link>
-          </Button>
+          <Link href={`/evolution/${id}`}>
+            <Button
+              variant="default"
+              className="cursor-pointer 
+              text-gray-800 bg-secondary-400 hover:bg-secondary-300 active:bg-secondary-500"
+            >
+              <Network />
+              進化系統を見る
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
     </>

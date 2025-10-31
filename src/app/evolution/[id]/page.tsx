@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Loading } from "@/components/loading";
 import { ToList } from "@/components/to-list";
 
+import { Undo2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 import { EvolutionTree } from "@/components/evolution-tree/component";
@@ -32,11 +34,11 @@ export default async function EvolutionDetailPage({ params }: Props) {
   const id = Number(resolvedParams.id);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8">
       <Suspense fallback={<Loading />}>
         <EvolutionDetailContent id={id} />
       </Suspense>
-      <ToList></ToList>
+      <ToList />
     </div>
   );
 }
@@ -47,18 +49,23 @@ async function EvolutionDetailContent({ id }: { id: number }) {
   const chain = evolutionChain.chain;
 
   return (
-    <div className="flex flex-col items-center justify-center z-0">
+    <div className="flex flex-col justify-center z-0">
       <h1>{`${pokemon.japaneseName}の進化系統図`}</h1>
       <Button variant="link">
-        <Link href={`/pokemon/${id}`}>ポケモンの詳細に戻る</Link>
+        <Link href={`/pokemon/${id}`} className="font-semibold text-gray-400">
+          <Undo2 size={20} className="inline mr-1 -mt-1" />
+          ポケモンの詳細に戻る
+        </Link>
       </Button>
-      <EvolutionTree
-        pos={0}
-        pokemon={chain}
-        depth={0}
-        siblings={1}
-        current={id}
-      ></EvolutionTree>
+      <div className="py-8 md:overflow-auto">
+        <EvolutionTree
+          pos={0}
+          pokemon={chain}
+          depth={0}
+          siblings={1}
+          current={id}
+        ></EvolutionTree>
+      </div>
     </div>
   );
 }

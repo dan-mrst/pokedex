@@ -7,23 +7,42 @@ import Image from "next/image";
 import { pokemonBasic } from "@/lib/types";
 
 interface EvolutionNodeProps {
+  id: number;
   size: number;
   pokemon: pokemonBasic;
-  isCurrent?: boolean;
+  isFocused: boolean;
+  isCurrent: boolean;
+  depth: number;
 }
 
 export function EvolutionNode({
+  id,
   size,
   pokemon,
-  isCurrent = false,
+  isFocused,
+  isCurrent,
+  depth,
 }: EvolutionNodeProps) {
   return (
-    <Link href={`/pokemon/${pokemon.id}`} className="w-fit block">
+    <Link
+      data-part="node"
+      href={`/pokemon/${pokemon.id}`}
+      className="w-fit block"
+    >
       <Node
-        className={`bg-white relative z-[10] hover:shadow-lg transition-shadow cursor-pointer ${
-          isCurrent ? "border-blue-300" : "border-gray-300"
-        }`}
-        style={{ width: `${size}px`, height: `${size}px` }}
+        id={`evolutionNode-${depth}-${id}`}
+        className={`bg-white relative hover:shadow-lg transition-shadow cursor-pointer ${
+          isCurrent
+            ? "border-primary-400"
+            : isFocused
+            ? "border-secondary-500"
+            : "border-gray-300"
+        } hover:scale-105 transition-transform duration-300`}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          zIndex: 100 - depth,
+        }}
         data-name={pokemon.name}
       >
         <NodeContent className="p-4">

@@ -1,22 +1,29 @@
 "use client";
 import Link from "next/link";
+import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import styles from "./header.module.css";
+import { House, Grid3x2, Search } from "lucide-react";
 
 export function Header() {
   const pathname = usePathname();
 
   const navigationItems = [
-    { href: "/", label: "ホーム" },
-    { href: "/pokemon", label: "ポケモン一覧" },
-    { href: "/search", label: "ポケモン検索" },
+    { href: "/", label: "ホーム", short: "ホーム", icon: <House /> },
+    {
+      href: "/pokemon",
+      label: "ポケモン一覧",
+      short: "一覧",
+      icon: <Grid3x2 />,
+    },
+    { href: "/search", label: "ポケモン検索", short: "検索", icon: <Search /> },
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="shadow-sm border-b bg-gray-700">
+      <div className="wrapper py-1">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-blue-600">
+          <Link href="/" className="text-xl font-bold text-secondary-400">
             ポケモン図鑑
           </Link>
           <nav>
@@ -25,13 +32,16 @@ export function Header() {
                 <li key={i}>
                   <Link
                     href={item.href}
-                    className={
-                      pathname === item.href
-                        ? `${styles["navlink"]} ${styles["navlink--active"]}`
-                        : `${styles["navlink"]}`
-                    }
+                    className={clsx(
+                      styles.navlink,
+                      pathname === item.href ? styles["navlink--active"] : ""
+                    )}
                   >
-                    {item.label}
+                    {item.icon}
+                    <span className="block md:hidden text-xs">
+                      {item.short}
+                    </span>
+                    <span className="hidden md:block">{item.label}</span>
                   </Link>
                 </li>
               ))}

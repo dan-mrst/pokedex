@@ -1,9 +1,9 @@
-import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { getProcessedPokemonList } from "@/lib/pokeapi";
+import { Suspense } from "react";
 
+import { PaginationComponent } from "@/components/pagination/component";
 import { PokemonCard } from "@/components/pokemon-card";
-import { PaginationComponent } from "@/components/pagination";
 
 import { LIST_PER_PAGE } from "@/lib/constants";
 
@@ -28,9 +28,10 @@ export default async function PokemonListPage({ searchParams }: Props) {
   const currentPage = Number(resolvedParams.page) || 1;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">ポケモン一覧</h1>
-
+    <div className="wrapper">
+      <h1>
+        ポケモン一覧<span className="h1__sub">POKEMONS LIST</span>
+      </h1>
       <Suspense fallback={<Loading />}>
         <PokemonListContent page={currentPage} />
       </Suspense>
@@ -43,7 +44,7 @@ async function PokemonListContent({ page }: { page: number }) {
     const processedList = await getProcessedPokemonList(page, LIST_PER_PAGE);
     return (
       <div>
-        <ul className="flex gap-8 flex-wrap">
+        <ul className="pokemons-list">
           {processedList.pokemon.map((item) => (
             <li key={item.id}>
               <PokemonCard pokemon={item}></PokemonCard>

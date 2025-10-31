@@ -37,11 +37,14 @@ export function PaginationComponent({
   const RIGHT_BOUNDARY = totalPages - 2;
 
   return (
-    <Pagination>
+    <Pagination className="mt-8 text-primary-900">
       <PaginationContent>
         {hasPrev && (
           <PaginationItem>
-            <PaginationPrevious href={baseQuery + `page=${currentPage - 1}`}>
+            <PaginationPrevious
+              href={baseQuery + `page=${currentPage - 1}`}
+              isActive={true}
+            >
               Prev
             </PaginationPrevious>
           </PaginationItem>
@@ -50,7 +53,10 @@ export function PaginationComponent({
         {currentPage - RANGE > LEFT_BOUNDARY && (
           <>
             <PaginationItem key={1}>
-              <PaginationLink href={baseQuery + `page=${1}`}>
+              <PaginationLink
+                href={baseQuery + `page=${1}`}
+                isActive={currentPage !== 1}
+              >
                 {1}
               </PaginationLink>
             </PaginationItem>
@@ -86,7 +92,10 @@ export function PaginationComponent({
           })
           .map((p) => (
             <PaginationItem key={p}>
-              <PaginationLink href={baseQuery + `page=${p}`}>
+              <PaginationLink
+                href={baseQuery + `page=${p}`}
+                isActive={currentPage !== p}
+              >
                 {p}
               </PaginationLink>
             </PaginationItem>
@@ -98,7 +107,10 @@ export function PaginationComponent({
               <PaginationEllipsis />
             </PaginationItem>
             <PaginationItem key={totalPages}>
-              <PaginationLink href={baseQuery + `page=${totalPages}`}>
+              <PaginationLink
+                href={baseQuery + `page=${totalPages}`}
+                isActive={currentPage !== totalPages}
+              >
                 {totalPages}
               </PaginationLink>
             </PaginationItem>
@@ -106,7 +118,10 @@ export function PaginationComponent({
         )}
         {hasNext && (
           <PaginationItem>
-            <PaginationNext href={baseQuery + `page=${currentPage + 1}`}>
+            <PaginationNext
+              href={baseQuery + `page=${currentPage + 1}`}
+              isActive={true}
+            >
               next
             </PaginationNext>
           </PaginationItem>

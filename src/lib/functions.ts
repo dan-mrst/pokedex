@@ -7,3 +7,10 @@ export function hiraToKata(hira: string): string {
     return String.fromCharCode(kataCode);
   });
 }
+
+export function toRadians(degrees: number) {
+  return (degrees / 180) * Math.PI;
+}
+export function toDegrees(radians: number) {
+  return (radians / Math.PI) * 180;
+}
