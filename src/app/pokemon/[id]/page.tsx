@@ -32,11 +32,20 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
-  const pokemon = await getPokemonForSearch(resolvedParams.id);
 
-  return {
-    title: pokemon.japaneseName,
-  };
+  try {
+    const pokemon = await getPokemonForSearch(resolvedParams.id);
+
+    return isNaN(Number(resolvedParams.id))
+      ? { title: "表示するポケモンがありません" }
+      : {
+          title: pokemon.japaneseName,
+        };
+  } catch (error) {
+    return {
+      title: "表示するポケモンがありません",
+    };
+  }
 }
 
 export default async function PokemonDetailPage({ params }: Props) {
@@ -58,7 +67,10 @@ async function PokemonDetailContent({ id }: { id: number }) {
 
   const next =
     id + 1 <= POKEMON_ID_UPPER ? await getProcessedPokemon(id + 1) : null;
-  const prev = id - 1 > 0 ? await getProcessedPokemon(id - 1) : null;
+  const prev =
+    id - 1 > 0 && id - 1 <= POKEMON_ID_UPPER
+      ? await getProcessedPokemon(id - 1)
+      : null;
   return (
     <>
       <nav className="flex justify-between">
@@ -112,10 +124,12 @@ async function PokemonDetailContent({ id }: { id: number }) {
           <Button className="invisible"></Button>
         )}
       </nav>
-      <Card className="h-full mt-8">
+      <Card className="h-full mt-8" data-name={pokemon.name}>
         <CardHeader className="text-center">
           <CardDescription className="pokemon-id text-sm">
-            {`No.${pokemon.id.toString().padStart(3, "0")}`}
+            {`No.${
+              pokemon.id > 0 ? pokemon.id.toString().padStart(3, "0") : "---"
+            }`}
           </CardDescription>
           <CardTitle className="text-3xl font-bold text-secondary-950">
             {pokemon.japaneseName}
@@ -136,7 +150,7 @@ async function PokemonDetailContent({ id }: { id: number }) {
                 <dt>高さ</dt>
                 <dd>
                   <span className={styles.figureNumber}>
-                    {pokemon.height / 10}
+                    {(pokemon.height / 10).toFixed(1)}
                   </span>
                   m
                 </dd>
@@ -146,7 +160,7 @@ async function PokemonDetailContent({ id }: { id: number }) {
                 <dt>重さ</dt>
                 <dd>
                   <span className={styles.figureNumber}>
-                    {pokemon.weight / 10}
+                    {(pokemon.weight / 10).toFixed(1)}
                   </span>
                   kg
                 </dd>
@@ -158,17 +172,21 @@ async function PokemonDetailContent({ id }: { id: number }) {
               <h2 className={styles.title}>タイプ</h2>
               <div className={styles.content}>
                 <ul className={styles.types}>
-                  {pokemon.types.map((type: string, i: number) => (
-                    <li key={i}>
-                      <Badge
-                        className={`bg-type-${type} text-${typeTextColor(
-                          type
-                        )}`}
-                      >
-                        {typeTranslations[type]}
-                      </Badge>
-                    </li>
-                  ))}
+                  {pokemon.types.length > 0 &&
+                    pokemon.types.map((type: string, i: number) => (
+                      <li key={i}>
+                        <Badge
+                          className={`bg-type-${type} text-${typeTextColor(
+                            type
+                          )}`}
+                        >
+                          {typeTranslations[type]}
+                        </Badge>
+                      </li>
+                    ))}
+                  {pokemon.types.length <= 0 && (
+                    <Badge variant={"default"}>--</Badge>
+                  )}
                 </ul>
               </div>
             </div>
@@ -176,44 +194,60 @@ async function PokemonDetailContent({ id }: { id: number }) {
               <h2 className={styles.title}>特性</h2>
               <div className={styles.content}>
                 <dl className="flex flex-col gap-4">
-                  {pokemon.abilities.map((ability, i) => {
-                    return (
-                      <div
-                        key={i}
-                        className="border border-gray-500 rounded-lg relative overflow-hidden"
-                      >
-                        <dt className="px-2 py-1 bg-gray-700 text-white  flex justify-between items-center">
-                          {ability.japaneseName}
-                          {ability.is_hidden && (
-                            <div className="px-2 py-1 bg-white text-gray-700 text-sm w-fit leading-none rounded-sm font-bold">
-                              隠れ特性
+                  {pokemon.abilities.length > 0 &&
+                    pokemon.abilities.map((ability, i) => {
+                      return (
+                        <div
+                          key={i}
+                          className="border border-gray-500 rounded-lg relative overflow-hidden"
+                        >
+                          <dt className="px-2 py-1 bg-gray-700 text-white  flex justify-between items-center">
+                            {ability.japaneseName}
+                            {ability.is_hidden && (
+                              <div className="px-2 py-1 bg-white text-gray-700 text-sm w-fit leading-none rounded-sm font-bold">
+                                隠れ特性
+                              </div>
+                            )}
+                          </dt>
+                          <dd>
+                            <div className="text-sm text-gray-600 px-3 py-2">
+                              {ability.flavor_text}
                             </div>
-                          )}
-                        </dt>
-                        <dd>
-                          <div className="text-sm text-gray-600 px-3 py-2">
-                            {ability.flavor_text}
-                          </div>
-                        </dd>
-                      </div>
-                    );
-                  })}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  {pokemon.abilities.length <= 0 && (
+                    <div className="text-gray-400">--</div>
+                  )}
                 </dl>
               </div>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center border-t-1 pt-4">
-          <Link href={`/evolution/${id}`}>
+          {pokemon.id > 0 && (
+            <Link href={`/evolution/${id}`}>
+              <Button
+                variant="default"
+                className="cursor-pointer 
+              text-gray-800 bg-secondary-400 hover:bg-secondary-300 active:bg-secondary-500"
+              >
+                <Network />
+                進化系統を見る
+              </Button>
+            </Link>
+          )}
+          {pokemon.id <= 0 && (
             <Button
               variant="default"
-              className="cursor-pointer 
-              text-gray-800 bg-secondary-400 hover:bg-secondary-300 active:bg-secondary-500"
+              className=" 
+              text-gray-400 bg-gray-600 hover:bg-gray-600"
             >
               <Network />
               進化系統を見る
             </Button>
-          </Link>
+          )}
         </CardFooter>
       </Card>
     </>

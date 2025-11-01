@@ -1,6 +1,7 @@
 import { Loading } from "@/components/loading";
 import { getProcessedPokemonList } from "@/lib/pokeapi";
 import { Suspense } from "react";
+import { Metadata } from "next";
 
 import { PaginationComponent } from "@/components/pagination/component";
 import { PokemonCard } from "@/components/pokemon-card";
@@ -44,13 +45,21 @@ async function PokemonListContent({ page }: { page: number }) {
     const processedList = await getProcessedPokemonList(page, LIST_PER_PAGE);
     return (
       <div>
-        <ul className="pokemons-list">
-          {processedList.pokemon.map((item) => (
-            <li key={item.id}>
-              <PokemonCard pokemon={item}></PokemonCard>
-            </li>
-          ))}
-        </ul>
+        {processedList.pokemon.length > 0 && (
+          <ul className="pokemons-list">
+            {processedList.pokemon.map((item) => (
+              <li key={item.id}>
+                <PokemonCard pokemon={item}></PokemonCard>
+              </li>
+            ))}
+          </ul>
+        )}
+        {processedList.pokemon.length <= 0 && (
+          <div className="text-center text-sm text-gray-400">
+            表示するポケモンがありません
+          </div>
+        )}
+
         <PaginationComponent
           pagination={processedList.pagination}
           basePath={"/pokemon"}

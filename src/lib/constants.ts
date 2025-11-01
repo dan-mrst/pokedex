@@ -1,3 +1,11 @@
+import {
+  NamedApiResource,
+  PokemonForSearch,
+  ProcessedPokemon,
+  Pokemon,
+  ProcessedEvolutionChain,
+} from "@/lib/types";
+
 export const BASE_URL = "https://pokeapi.co/api/v2";
 
 export const LIST_PER_PAGE = 20;
@@ -180,4 +188,57 @@ export const typeTextColor = (type: string) => {
   );
 
   return hit.length > 0 ? hit[0] : null;
+};
+
+export const defaultObject = <T>(type: string): T => {
+  const nullNamedAPIResource: NamedApiResource = { name: "", url: "" };
+
+  const defaults: Record<
+    string,
+    PokemonForSearch | ProcessedPokemon | Pokemon | ProcessedEvolutionChain
+  > = {
+    PokemonForSearch: {
+      id: 0,
+      name: "--",
+      japaneseName: "--",
+    },
+    ProcessedPokemon: {
+      id: 0,
+      name: "",
+      japaneseName: "ポケモン取得エラー",
+      imageUrl: "/noimage.png",
+      types: [],
+      height: 0,
+      weight: 0,
+      genus: "--",
+      abilities: [],
+    },
+    Pokemon: {
+      abilities: [],
+      id: 0,
+      height: 0,
+      weight: 0,
+      name: "Pokemon not found",
+      species: nullNamedAPIResource,
+      sprites: { front_default: null, other: {}, versions: {} },
+      types: [],
+    },
+    ProcessedEvolutionChain: {
+      id: 0,
+      baby_trigger_item: null,
+      chain: {
+        evolution_details: [],
+        is_baby: false,
+        species: nullNamedAPIResource,
+        evolves_to: [],
+        conditions: [],
+        id: 0,
+        imageUrl: "/noimage.png",
+        name: "--",
+        japaneseName: "--",
+      },
+    },
+  };
+
+  return defaults[type] as T;
 };

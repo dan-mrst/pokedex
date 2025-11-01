@@ -40,6 +40,8 @@ export default async function SearchPage({ searchParams }: Props) {
   const query = resolvedParams.q || "";
   const page = Number(resolvedParams.page) || 1;
 
+  console.log(pokemonSearchList);
+
   return (
     <div className="wrapper">
       <h1>
@@ -107,26 +109,34 @@ async function PokemonSearchResult({
             pagination.totalCount > 0 ? "見つかりました" : ""
           }`}</p>
         </div>
-        {pagination.totalCount > 0 && (
-          <div className="mt-4 w-fit mx-auto text-gray-400">
-            <span className="text-base">
-              {`${SEARCH_PER_PAGE * (page - 1) + 1} - ${Math.min(
-                pagination.totalCount,
-                SEARCH_PER_PAGE * page
-              )}`}
-            </span>
-            <span className="mt-0.5 text-sm">
-              ／{`${pagination.totalCount}`}
-            </span>
+        {pagination.totalCount > 0 &&
+          pagination.currentPage <= pagination.totalPages && (
+            <div className="mt-4 w-fit mx-auto text-gray-400">
+              <span className="text-base">
+                {`${SEARCH_PER_PAGE * (page - 1) + 1} - ${Math.min(
+                  pagination.totalCount,
+                  SEARCH_PER_PAGE * page
+                )}`}
+              </span>
+              <span className="mt-0.5 text-sm">
+                ／{`${pagination.totalCount}`}
+              </span>
+            </div>
+          )}
+        {pagination.currentPage <= pagination.totalPages && (
+          <ul className="pokemons-list">
+            {processedList.map((item) => (
+              <li key={item.id}>
+                <PokemonCard pokemon={item}></PokemonCard>
+              </li>
+            ))}
+          </ul>
+        )}
+        {pagination.currentPage > pagination.totalPages && (
+          <div className="text-center text-sm text-gray-400 mt-2">
+            ページ指定が誤っています
           </div>
         )}
-        <ul className="pokemons-list">
-          {processedList.map((item) => (
-            <li key={item.id}>
-              <PokemonCard pokemon={item}></PokemonCard>
-            </li>
-          ))}
-        </ul>
 
         <PaginationComponent
           pagination={pagination}

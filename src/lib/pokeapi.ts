@@ -26,6 +26,7 @@ import {
   LIST_PER_PAGE,
   evolutionDetailTranslations,
   indexedTerms,
+  defaultObject,
 } from "@/lib/constants";
 
 export const POKEMON_ID_UPPER = await (async () => {
@@ -106,7 +107,7 @@ async function processPokemon(pokemon: Pokemon): Promise<ProcessedPokemon> {
   const speciesDetail = await fetchAPIData<PokemonSpeciesDetail>(
     pokemon.species.url
   ).catch(() => {
-    throw "Pokemon species detail Response Error";
+    throw "Pokemon species detail Response Error in processPokemon";
   });
 
   const processedAbilities = await Promise.allSettled(
@@ -211,11 +212,14 @@ function getJapaneseGenus(genera: Genus[]) {
 export async function getProcessedPokemon(
   idOrName: string | number
 ): Promise<ProcessedPokemon> {
-  const pokemon = await fetchAPIData<Pokemon>(
-    `${BASE_URL}/pokemon/${idOrName}`
-  );
-
-  return processPokemon(pokemon);
+  try {
+    const pokemon = await fetchAPIData<Pokemon>(
+      `${BASE_URL}/pokemon/${idOrName}`
+    );
+    return processPokemon(pokemon);
+  } catch {
+    return defaultObject<ProcessedPokemon>("ProcessedPokemon");
+  }
 }
 
 /**
@@ -229,15 +233,25 @@ export async function getPokemonSearchList(
     SAFE_POKEMON_LIMIT
   )}`;
 
-  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl);
+  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl).catch(
+    () => {
+      throw "Pokemon list Response Error";
+    }
+  );
 
-  const searchPokemons = await Promise.allSettled(
-    pokemonListRes.results.map((pokemon) => getPokemonForSearch(pokemon.name))
-  ).then((result) =>
+  const searchPokemons = await Promise.all(
+    pokemonListRes.results.map((pokemon) =>
+      getPokemonForSearch(
+        pokemon.url.replace(`${BASE_URL}/pokemon/`, "").replace("/", "")
+      )
+    )
+  );
+
+  /*.then((result) =>
     result
       .filter((data) => data.status === "fulfilled")
       .map((data) => data.value)
-  );
+  );*/
 
   return searchPokemons;
 }
@@ -248,15 +262,19 @@ export async function getPokemonSearchList(
 export async function getPokemonForSearch(
   idOrName: number | string
 ): Promise<PokemonForSearch> {
-  const detail = await fetchAPIData<PokemonSpeciesDetail>(
-    `${BASE_URL}/pokemon-species/${idOrName}`
-  );
+  try {
+    const detail = await fetchAPIData<PokemonSpeciesDetail>(
+      `${BASE_URL}/pokemon-species/${idOrName}`
+    );
 
-  return {
-    id: detail.id,
-    name: detail.name,
-    japaneseName: getJapaneseName(detail.names) ?? detail.name,
-  };
+    return {
+      id: detail.id,
+      name: detail.name,
+      japaneseName: getJapaneseName(detail.names) ?? detail.name,
+    };
+  } catch (error) {
+    return defaultObject<PokemonForSearch>("PokemonForSearch");
+  }
 }
 
 /*-- 進化 --*/
@@ -270,21 +288,25 @@ async function fetchEvolutionChain(url: string): Promise<EvolutionChain> {
 export async function getProcessedEvolutionChain(
   idOrName: string | number
 ): Promise<ProcessedEvolutionChain> {
-  const pokemon = await fetchAPIData<PokemonSpeciesDetail>(
-    `${BASE_URL}/pokemon-species/${idOrName}`
-  );
+  try {
+    const pokemon = await fetchAPIData<PokemonSpeciesDetail>(
+      `${BASE_URL}/pokemon-species/${idOrName}`
+    );
 
-  const chain = await fetchEvolutionChain(pokemon.evolution_chain.url);
+    const chain = await fetchEvolutionChain(pokemon.evolution_chain.url);
 
-  const processedEvolution = await processEvolution(chain.chain);
+    const processedEvolution = await processEvolution(chain.chain);
 
-  const processed: ProcessedEvolutionChain = {
-    id: chain.id,
-    baby_trigger_item: chain.baby_trigger_item,
-    chain: processedEvolution,
-  };
+    const processed: ProcessedEvolutionChain = {
+      id: chain.id,
+      baby_trigger_item: chain.baby_trigger_item,
+      chain: processedEvolution,
+    };
 
-  return processed;
+    return processed;
+  } catch (error) {
+    return defaultObject<ProcessedEvolutionChain>("ProcessedEvolutionChain");
+  }
 }
 
 async function processEvolution(
@@ -292,11 +314,15 @@ async function processEvolution(
 ): Promise<ProcessedEvolutionTo> {
   const speciesDetail = await fetchAPIData<PokemonSpeciesDetail>(
     evolution.species.url
-  );
+  ).catch(() => {
+    throw "Pokemon species detail Response Error in processEvolution";
+  });
 
   const pokemon = await fetchAPIData<Pokemon>(
     `${BASE_URL}/pokemon/${speciesDetail.id}`
-  );
+  ).catch(() => {
+    throw "Pokemon Response Error in processEvolution";
+  });
 
   const evolvesTo = await Promise.all(
     evolution.evolves_to.map((evo) => processEvolution(evo))
@@ -428,7 +454,9 @@ async function translateEvolutionRequirement(
   require: NamedApiResource | null
 ): Promise<string | undefined> {
   if (!require) return undefined;
-  const data = await fetchAPIData<{ names: Name[] }>(require.url);
+  const data = await fetchAPIData<{ names: Name[] }>(require.url).catch(() => {
+    throw "Pokemon evolution detail Response Error";
+  });
 
   return getJapanese(data.names, "name");
 }

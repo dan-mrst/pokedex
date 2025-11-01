@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import styles from "./header.module.css";
@@ -23,7 +24,11 @@ export function Header() {
     <header className="shadow-sm border-b bg-gray-700">
       <div className="wrapper py-1">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-secondary-400">
+          <Link
+            href="/"
+            className="text-xl font-bold text-secondary-400 flex gap-2"
+          >
+            <Image src="/pokedex.svg" width={24} height={24} alt="" />
             ポケモン図鑑
           </Link>
           <nav>

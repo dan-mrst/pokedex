@@ -60,6 +60,7 @@ export function SearchForm({ initialQuery = "" }: SearchFormProps) {
             })}
             aria-invalid={!!errors.query || undefined}
             onBlur={handleBlur}
+            defaultValue={initialQuery}
           ></Input>
           <Button
             variant="default"

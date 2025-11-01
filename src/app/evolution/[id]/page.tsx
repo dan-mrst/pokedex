@@ -25,7 +25,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pokemon = await getPokemonForSearch(resolvedParams.id);
 
   return {
-    title: `${pokemon.japaneseName}の進化系統図`,
+    title:
+      pokemon.id > 0
+        ? `${pokemon.japaneseName}の進化系統図`
+        : "表示する進化系統図がありません",
   };
 }
 
@@ -50,7 +53,11 @@ async function EvolutionDetailContent({ id }: { id: number }) {
 
   return (
     <div className="flex flex-col justify-center z-0">
-      <h1>{`${pokemon.japaneseName}の進化系統図`}</h1>
+      <h1>
+        {pokemon.id > 0
+          ? `${pokemon.japaneseName}の進化系統図`
+          : "表示する進化系統図がありません"}
+      </h1>
       <Button variant="link">
         <Link href={`/pokemon/${id}`} className="font-semibold text-gray-400">
           <Undo2 size={20} className="inline mr-1 -mt-1" />
@@ -59,7 +66,7 @@ async function EvolutionDetailContent({ id }: { id: number }) {
       </Button>
       <div className="py-8 md:overflow-auto">
         <EvolutionTree
-          pos={0}
+          nodeId={0}
           pokemon={chain}
           depth={0}
           siblings={1}
