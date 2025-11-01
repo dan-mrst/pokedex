@@ -7,7 +7,7 @@ import { ProcessedEvolutionDetails, pokemonBasic } from "@/lib/types";
 import { evolutionTriggerTranslations } from "@/lib/constants";
 import { toDegrees } from "@/lib/functions";
 
-import { useGetElementProperty } from "@/lib/element";
+import useGetElementProperty from "@/lib/UseGetElementProperty";
 import { Vector } from "@/lib/Vector";
 
 interface EvolutionBranchProps {
@@ -44,8 +44,19 @@ export function EvolutionBranch({
   );
   const detailRect = getElementProperty();
 
+  /**
+   * 進化詳細の配列の大きさで要素の高さを見積り
+   */
+  const provisionalDH =
+    16 *
+    (details.length +
+      details.reduce((sum, detail) => {
+        return sum + detail.requirements.length;
+      }, 0));
+
   const DETAIL_WIDTH = isHorizontal ? 120 : 160;
-  const DETAIL_HEIGHT = detailRect.height;
+  const DETAIL_HEIGHT =
+    detailRect.height > 0 ? detailRect.height : provisionalDH;
 
   const focusedZIndex = isHorizontal ? 2 : 100 - node.depth;
 

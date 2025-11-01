@@ -193,3 +193,7 @@
     @apply font-semibold text-primary-950;
   }
 }
+
+.touched-hover {
+  border: 4px red solid;
+}

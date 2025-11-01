@@ -3,6 +3,9 @@ export interface NamedApiResource {
   url: string;
 }
 
+/**
+ * 多言語情報を含むオブジェクトの雛形
+ */
 export interface MultiLangItem {
   language: NamedApiResource;
 }
@@ -10,9 +13,8 @@ export interface MultiLangItem {
 /**
  * 多言語対応の名前
  */
-export interface Name {
+export interface Name extends MultiLangItem {
   name: string;
-  language: NamedApiResource;
 }
 
 /**
@@ -36,6 +38,15 @@ export interface Pokemon {
   sprites: PokemonSprites;
   types: PokemonType[];
   weight: number;
+}
+
+/**
+ * Pokemon型内の特性
+ */
+export interface PokemonAbility {
+  ability: NamedApiResource | null;
+  is_hidden: boolean;
+  slot: number;
 }
 
 /**
@@ -73,6 +84,9 @@ interface PokemonSprites extends PokemonSprite {
   };
 }
 
+/**
+ * 種族詳細のレスポンス
+ */
 export interface PokemonSpeciesDetail {
   genera: Genus[];
   id: number;
@@ -81,16 +95,12 @@ export interface PokemonSpeciesDetail {
   evolution_chain: { url: string };
 }
 
+/**
+ * 属性
+ */
 export interface Genus {
   genus: string;
   language: NamedApiResource;
-}
-
-export interface pokemonBasic {
-  id: number;
-  imageUrl: string;
-  name: string;
-  japaneseName: string;
 }
 
 /**
@@ -105,12 +115,21 @@ export interface ProcessedPokemon extends pokemonBasic {
 }
 
 /**
- * Pokemon型内の特性
+ * 検索機能に用いる全リスト用のProcessedPokemon省略版
  */
-export interface PokemonAbility {
-  ability: NamedApiResource | null;
-  is_hidden: boolean;
-  slot: number;
+export interface PokemonForSearch {
+  id: number;
+  name: string;
+  japaneseName: string;
+}
+/**
+ * idと名前、画像のみのProcessedPokemon省略版
+ */
+export interface pokemonBasic {
+  id: number;
+  imageUrl: string;
+  name: string;
+  japaneseName: string;
 }
 
 /**
@@ -141,15 +160,6 @@ export interface ProcessedAbility {
   japaneseName: string;
   name: string;
   is_hidden: boolean;
-}
-
-/**
- * 検索機能に用いる全リスト用のPokemon省略版
- */
-export interface PokemonForSearch {
-  id: number;
-  name: string;
-  japaneseName: string;
 }
 
 /*-- 進化 --*/
@@ -217,7 +227,9 @@ export interface ProcessedEvolutionDetails {
   }[];
 }
 
-// ページネーション情報
+/**
+ * ページネーション情報
+ */
 export interface PaginationInfo {
   currentPage: number;
   totalPages: number;

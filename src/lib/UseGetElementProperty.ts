@@ -1,8 +1,8 @@
 import { RefObject, useCallback } from "react";
 
-export const useGetElementProperty = <T extends HTMLElement | null>(
+export default function useGetElementProperty<T extends HTMLElement | null>(
   elementRef: RefObject<T>
-) => {
+) {
   const getElementProperty = useCallback((): Omit<DOMRect, "toJSON"> => {
     const clientRect = elementRef.current?.getBoundingClientRect();
     if (clientRect) {
@@ -24,4 +24,4 @@ export const useGetElementProperty = <T extends HTMLElement | null>(
   return {
     getElementProperty,
   };
-};
+}

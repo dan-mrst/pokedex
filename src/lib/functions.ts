@@ -8,9 +8,17 @@ export function hiraToKata(hira: string): string {
   });
 }
 
-export function toRadians(degrees: number) {
-  return (degrees / 180) * Math.PI;
-}
+/**
+ * 弧度法を度数法に変換
+ * @param radians
+ * @returns degrees
+ */
 export function toDegrees(radians: number) {
   return (radians / Math.PI) * 180;
 }
+
+/**
+ * タッチデバイス判定
+ * @returns boolean
+ */
+export const isTouchDevice = (): boolean => "ontouchstart" in window;

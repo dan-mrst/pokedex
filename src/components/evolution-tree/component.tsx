@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
 import { ProcessedEvolutionTo, pokemonBasic } from "@/lib/types";
-import { toDegrees } from "@/lib/functions";
-import { useGetElementProperty } from "@/lib/element";
+import useGetElementProperty from "@/lib/UseGetElementProperty";
+import useWindowWidth from "@/lib/UseWindowWidth";
 
 import { EvolutionNode } from "@/components/evolution-node/component";
 import { EvolutionBranch } from "@/components/evolution-branch/component";
@@ -27,21 +27,6 @@ interface EvolutionTreeProps {
   current: number;
   siblings: number;
 }
-
-const useWindowWidth = () => {
-  const [width, setWidth] = useState(window.innerWidth);
-
-  useEffect(() => {
-    const handleResize = () => setWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return width;
-};
 
 export function EvolutionTree({
   parent,
@@ -111,12 +96,20 @@ export function EvolutionTree({
 
   const [isFocused, setIsFocused] = useState<boolean>(false);
 
-  const focusBranch = (event: React.MouseEvent<HTMLDivElement>) => {
+  const focusBranch = (e: React.MouseEvent<HTMLElement>) => {
     setIsFocused(true);
   };
 
-  const blurBranch = (event: React.MouseEvent<HTMLDivElement>) => {
+  const blurBranch = (e: React.MouseEvent<HTMLElement>) => {
     setIsFocused(false);
+  };
+
+  const touchBranch = (e: React.TouchEvent<HTMLElement>) => {
+    e.preventDefault();
+
+    if (!isFocused) {
+      setIsFocused(true);
+    }
   };
 
   return (
@@ -126,6 +119,7 @@ export function EvolutionTree({
       className="flex items-center justify-center relative flex-col min-[960px]:flex-row"
       onMouseEnter={focusBranch}
       onMouseLeave={blurBranch}
+      onTouchStart={touchBranch}
       style={{ left: `${vX}px` }}
     >
       {depth > 0 && (
@@ -149,7 +143,7 @@ export function EvolutionTree({
         ></EvolutionBranch>
       )}
       <EvolutionNode
-        id={nodeId}
+        nodeId={nodeId}
         size={NODE_SIZE}
         pokemon={pokemon}
         isFocused={isFocused}
