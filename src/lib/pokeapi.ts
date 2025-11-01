@@ -39,63 +39,10 @@ const SAFE_POKEMON_LIMIT = POKEMON_ID_UPPER - 20;
 /**
  * ポケモン一覧を取得する
  */
-export async function fetchPokemonList(
-  limit: number = LIST_PER_PAGE,
-  offset: number = 0
-): Promise<PokemonListResponse> {
-  const res = await fetch(
-    `${BASE_URL}/pokemon?offset=${offset}&limit=${Math.min(
-      limit,
-      SAFE_POKEMON_LIMIT
-    )}`
-  );
-  const data = await res.json().catch(() => {
-    throw "fetch Pokemon List error";
-  });
-  return data;
-}
-
-/**
- * 個別のポケモン詳細情報を取得する
- */
-export async function fetchPokemon(url: string): Promise<Pokemon> {
+async function fetchAPIData<T>(url: string): Promise<T> {
   const res = await fetch(url);
   const data = await res.json();
   return data;
-}
-/**
- * ポケモンの種別詳細情報を取得する
- */
-export async function fetchPokemonSpeciesDetail(
-  url: string
-): Promise<PokemonSpeciesDetail> {
-  const res = await fetch(url);
-  const data = await res.json();
-  return data;
-}
-/**
- * ポケモンの特性詳細情報を取得する
- */
-export async function fetchPokemonAbilityDetail(
-  url: string
-): Promise<PokemonAbilityDetail> {
-  const res = await fetch(url);
-  const data = await res.json();
-  return data;
-}
-
-/**
- * ポケモンの画像URLを取得する
- */
-export function getPokemonImageUrl(sprites: Pokemon["sprites"]): string {
-  const imgUrl =
-    "official-artwork" in sprites.other
-      ? sprites.other["official-artwork"]["front_default"]
-      : "home" in sprites.other
-      ? sprites.other["home"]["front_default"]
-      : sprites["front_default"];
-
-  return imgUrl ?? "/noimage.png";
 }
 
 /**
@@ -112,9 +59,13 @@ export async function getProcessedPokemonList(
     page * limit <= POKEMON_ID_UPPER
       ? limit
       : POKEMON_ID_UPPER - (page - 1) * limit;
-  const pokemonListRes = await fetchPokemonList(
-    requestLimit,
+
+  const requestUrl = `${BASE_URL}/pokemon?offset=${
     (page - 1) * limit
+  }&limit=${Math.min(requestLimit, SAFE_POKEMON_LIMIT)}`;
+
+  const pokemonListRes = await fetchAPIData<PokemonListResponse>(
+    requestUrl
   ).catch(() => {
     throw "Pokemon List Response Error";
   });
@@ -152,7 +103,7 @@ export async function getProcessedPokemonList(
  * Pokemonをアプリ用に加工整形
  */
 async function processPokemon(pokemon: Pokemon): Promise<ProcessedPokemon> {
-  const speciesDetail = await fetchPokemonSpeciesDetail(
+  const speciesDetail = await fetchAPIData<PokemonSpeciesDetail>(
     pokemon.species.url
   ).catch(() => {
     throw "Pokemon species detail Response Error";
@@ -186,7 +137,7 @@ async function processAbility(
 ): Promise<ProcessedAbility> {
   if (!ability.ability) return Promise.reject();
 
-  const abilityDetail = await fetchPokemonAbilityDetail(
+  const abilityDetail = await fetchAPIData<PokemonAbilityDetail>(
     ability.ability.url
   ).catch(() => {
     throw "Pokemon ability detail Response Error";
@@ -204,6 +155,28 @@ async function processAbility(
   return processedAbility;
 }
 
+/**
+ * ポケモンの画像URLを取得する
+ */
+function getPokemonImageUrl(sprites: Pokemon["sprites"]): string {
+  const imgUrl =
+    "official-artwork" in sprites.other
+      ? sprites.other["official-artwork"]["front_default"]
+      : "home" in sprites.other
+      ? sprites.other["home"]["front_default"]
+      : sprites["front_default"];
+
+  return imgUrl ?? "/noimage.png";
+}
+
+/**
+ *
+ * 任意のキーの多言語配列から日本語を取得
+ * @param items
+ * @param targetKey
+ * @param en_fallback
+ * @returns
+ */
 function getJapanese<T extends MultiLangItem>(
   items: T[],
   targetKey: keyof T,
@@ -238,7 +211,9 @@ function getJapaneseGenus(genera: Genus[]) {
 export async function getProcessedPokemon(
   idOrName: string | number
 ): Promise<ProcessedPokemon> {
-  const pokemon = await fetchPokemon(`${BASE_URL}/pokemon/${idOrName}`);
+  const pokemon = await fetchAPIData<Pokemon>(
+    `${BASE_URL}/pokemon/${idOrName}`
+  );
 
   return processPokemon(pokemon);
 }
@@ -249,7 +224,12 @@ export async function getProcessedPokemon(
 export async function getPokemonSearchList(
   n: number
 ): Promise<PokemonForSearch[]> {
-  const pokemonListRes = await fetchPokemonList(n, 0);
+  const listUrl = `${BASE_URL}/pokemon?offset=${0}&limit=${Math.min(
+    n,
+    SAFE_POKEMON_LIMIT
+  )}`;
+
+  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl);
 
   const searchPokemons = await Promise.allSettled(
     pokemonListRes.results.map((pokemon) => getPokemonForSearch(pokemon.name))
@@ -268,7 +248,7 @@ export async function getPokemonSearchList(
 export async function getPokemonForSearch(
   idOrName: number | string
 ): Promise<PokemonForSearch> {
-  const detail = await fetchPokemonSpeciesDetail(
+  const detail = await fetchAPIData<PokemonSpeciesDetail>(
     `${BASE_URL}/pokemon-species/${idOrName}`
   );
 
@@ -290,7 +270,7 @@ async function fetchEvolutionChain(url: string): Promise<EvolutionChain> {
 export async function getProcessedEvolutionChain(
   idOrName: string | number
 ): Promise<ProcessedEvolutionChain> {
-  const pokemon = await fetchPokemonSpeciesDetail(
+  const pokemon = await fetchAPIData<PokemonSpeciesDetail>(
     `${BASE_URL}/pokemon-species/${idOrName}`
   );
 
@@ -310,9 +290,13 @@ export async function getProcessedEvolutionChain(
 async function processEvolution(
   evolution: EvolvesTo
 ): Promise<ProcessedEvolutionTo> {
-  const speciesDetail = await fetchPokemonSpeciesDetail(evolution.species.url);
+  const speciesDetail = await fetchAPIData<PokemonSpeciesDetail>(
+    evolution.species.url
+  );
 
-  const pokemon = await fetchPokemon(`${BASE_URL}/pokemon/${speciesDetail.id}`);
+  const pokemon = await fetchAPIData<Pokemon>(
+    `${BASE_URL}/pokemon/${speciesDetail.id}`
+  );
 
   const evolvesTo = await Promise.all(
     evolution.evolves_to.map((evo) => processEvolution(evo))
@@ -440,18 +424,11 @@ async function processEvolutionDetail(
   return processed;
 }
 
-async function fetchEvolutionRequirement(
-  url: string
-): Promise<{ names: Name[] }> {
-  const res = await fetch(url);
-  const data = await res.json();
-  return data;
-}
 async function translateEvolutionRequirement(
   require: NamedApiResource | null
 ): Promise<string | undefined> {
   if (!require) return undefined;
-  const data = await fetchEvolutionRequirement(require.url);
+  const data = await fetchAPIData<{ names: Name[] }>(require.url);
 
   return getJapanese(data.names, "name");
 }
