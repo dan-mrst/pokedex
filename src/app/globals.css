@@ -185,6 +185,20 @@
   }
 }
 
+@keyframes trans {
+  0% {
+    left: -100%;
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+  100% {
+    left: 100%;
+    transform: scaleX(0);
+  }
+}
+
 @layer utilities {
   .pokemon-id {
     @apply text-xs font-semibold text-gray-400;
@@ -192,8 +206,12 @@
   .pokemon-name {
     @apply font-semibold text-primary-950;
   }
-}
 
-.touched-hover {
-  border: 4px red solid;
+  .page-transition-animation {
+    @apply block;
+  }
+  .page-transition-animation > div {
+    transform-origin: 0 0;
+    animation: trans 1.5s ease infinite;
+  }
 }

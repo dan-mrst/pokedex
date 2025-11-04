@@ -8,6 +8,9 @@ import { PokemonCard } from "@/components/pokemon-card";
 import { getProcessedPokemonList } from "@/lib/pokeapi";
 import { LIST_PER_PAGE } from "@/lib/constants";
 
+import { TransitionLink } from "@/components/transition-link";
+import { TransitionReset } from "@/components/transition-link";
+
 interface SearchParams {
   page?: string;
 }
@@ -27,12 +30,15 @@ export async function generateMetadata({
 export default async function PokemonListPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const currentPage =
-    isNaN(Number(resolvedParams.page)) || Number(resolvedParams.page) < 0
+    typeof resolvedParams.page === "undefined"
+      ? 1
+      : isNaN(Number(resolvedParams.page))
       ? 0
       : Number(resolvedParams.page);
 
   return (
     <div className="wrapper">
+      <TransitionReset />
       <h1>
         ポケモン一覧<span className="h1__sub">POKEMONS LIST</span>
       </h1>
@@ -48,7 +54,7 @@ async function PokemonListContent({ page }: { page: number }) {
     const processedList = await getProcessedPokemonList(page, LIST_PER_PAGE);
     return (
       <div>
-        {processedList.pokemon.length > 0 && (
+        {page > 0 && processedList.pokemon.length > 0 && (
           <ul className="pokemons-list">
             {processedList.pokemon.map((item) => (
               <li key={item.id}>

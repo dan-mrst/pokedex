@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import styles from "./header.module.css";
 import { House, Grid3x2, Search } from "lucide-react";
 
+import { TransitionLink } from "@/components/transition-link";
+
 export function Header() {
   const pathname = usePathname();
 
@@ -21,21 +23,21 @@ export function Header() {
   ];
 
   return (
-    <header className="shadow-sm border-b bg-gray-700">
+    <header className="shadow-sm border-b bg-gray-700 sticky top-0 z-999">
       <div className="wrapper py-1">
         <div className="flex justify-between items-center h-16">
-          <Link
+          <TransitionLink
             href="/"
             className="text-xl font-bold text-secondary-400 flex gap-2"
           >
             <Image src="/pokedex.svg" width={24} height={24} alt="" />
             ポケモン図鑑
-          </Link>
+          </TransitionLink>
           <nav>
             <ul className="flex items-center gap-8">
               {navigationItems.map((item, i) => (
                 <li key={i}>
-                  <Link
+                  <TransitionLink
                     href={item.href}
                     className={clsx(
                       styles.navlink,
@@ -47,13 +49,25 @@ export function Header() {
                       {item.short}
                     </span>
                     <span className="hidden md:block">{item.label}</span>
-                  </Link>
+                  </TransitionLink>
                 </li>
               ))}
             </ul>
           </nav>
         </div>
       </div>
+      <PageTransitionBar />
     </header>
+  );
+}
+
+function PageTransitionBar() {
+  return (
+    <div
+      id="page-transition"
+      className="absolute -bottom-1.5 w-full h-1.5 overflow-hidden hidden"
+    >
+      <div className="relative w-80 h-full bg-secondary-400"></div>
+    </div>
   );
 }

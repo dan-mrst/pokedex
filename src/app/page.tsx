@@ -1,5 +1,4 @@
 import Image from "next/image";
-import NavLink from "next/link";
 import {
   Card,
   CardAction,
@@ -11,13 +10,16 @@ import {
 } from "@/components/ui/card";
 import { Grid3x2, Search } from "lucide-react";
 
+import { TransitionLink, TransitionReset } from "@/components/transition-link";
+
 export default function Home() {
   return (
     <div className="wrapper">
+      <TransitionReset />
       <nav>
         <ul className="w-fit grid grid-cols1 ml-auto mr-auto gap-8 sm:grid-cols-2">
           <li className="w-fit">
-            <NavLink href={"/pokemon"}>
+            <TransitionLink href={"/pokemon"}>
               <Card className="w-80 py-8">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-1">
@@ -32,10 +34,10 @@ export default function Home() {
                   LIST
                 </CardFooter>
               </Card>
-            </NavLink>
+            </TransitionLink>
           </li>
           <li className="w-fit">
-            <NavLink href={"/pokemon"}>
+            <TransitionLink href={"/pokemon"}>
               <Card className="w-80 py-8">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-1">
@@ -50,7 +52,7 @@ export default function Home() {
                   SEARCH
                 </CardFooter>
               </Card>
-            </NavLink>
+            </TransitionLink>
           </li>
         </ul>
       </nav>

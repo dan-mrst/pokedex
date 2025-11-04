@@ -240,11 +240,11 @@ export async function getPokemonSearchList(
     POKEMON_ID_UPPER
   )}`;
 
-  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl, {
-    next: { revalidate: 180 },
-  }).catch(() => {
-    throw "Pokemon list Response Error";
-  });
+  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl).catch(
+    () => {
+      throw "Pokemon list Response Error";
+    }
+  );
 
   const searchPokemons = await doFetchByDivision(
     pokemonListRes.results.map((pokemon) =>
