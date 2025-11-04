@@ -3,8 +3,8 @@
 import { useRef } from "react";
 import Image from "next/image";
 
-import { ProcessedEvolutionDetails, pokemonBasic } from "@/lib/types";
-import { evolutionTriggerTranslations } from "@/lib/constants";
+import { ProcessedEvolutionDetail, pokemonBasic } from "@/lib/types";
+import { evolutionTriggerTranslations, NODE_Z_INDEX } from "@/lib/constants";
 import { toDegrees } from "@/lib/functions";
 
 import useGetElementProperty from "@/lib/UseGetElementProperty";
@@ -14,7 +14,7 @@ interface EvolutionBranchProps {
   parent?: pokemonBasic;
   node: { id: number; size: number; depth: number; y: number };
   branch: Vector;
-  details: ProcessedEvolutionDetails[];
+  details: ProcessedEvolutionDetail[];
   isFocused: boolean;
   isHorizontal: boolean;
 }
@@ -27,16 +27,22 @@ export function EvolutionBranch({
   isFocused,
   isHorizontal,
 }: EvolutionBranchProps) {
+  /**
+   * 親Node（進化元）が画面上部表示範囲外にいる場合
+   */
   const isParentScrolledOut = node.y < branch.y - node.size;
 
+  /**
+   * 縦配置の場合のみ、FocusしたNodeの親が表示範囲外なら近くに寄せて表示する
+   */
   const shouldDetailsStick = !isHorizontal && isFocused && isParentScrolledOut;
 
-  const BRANCH_STROKE = 8;
+  const BRANCH_STROKE = 8; //枝の太さ
 
-  const ARROW_WIDTH = 24;
-  const ARROW_HEIGHT = 28;
+  const ARROW_WIDTH = 24; //矢印先端の長さ
+  const ARROW_HEIGHT = 28; //矢印先端の広がり
 
-  const PARENT_SIZE = 48;
+  const PARENT_SIZE = 48; //stick表示の大きさ
 
   const detailRef = useRef<HTMLDivElement>(null);
   const { getElementProperty } = useGetElementProperty<HTMLDivElement | null>(
@@ -45,7 +51,7 @@ export function EvolutionBranch({
   const detailRect = getElementProperty();
 
   /**
-   * 進化詳細の配列の大きさで要素の高さを見積り
+   * 進化詳細配列の大きさで進化詳細要素の高さを見積り
    */
   const provisionalDH =
     16 *
@@ -54,11 +60,23 @@ export function EvolutionBranch({
         return sum + detail.requirements.length;
       }, 0));
 
-  const DETAIL_WIDTH = isHorizontal ? 120 : 160;
+  const DETAIL_WIDTH = isHorizontal ? 120 : 200;
   const DETAIL_HEIGHT =
     detailRect.height > 0 ? detailRect.height : provisionalDH;
 
-  const focusedZIndex = isHorizontal ? 2 : 100 - node.depth;
+  /**
+   * Focus時にBranchを他のNodeより上に持ってくる
+   *  depthを引くことで親Nodeより手前に来ない
+   *
+   *  -1:非FocusのBranch
+   *  0:ベース
+   *  1:非Focusのdetail要素
+   *  2〜100:NodeとFocusの枝
+   *  100:Focusのdetail要素
+   */
+  const focusedZIndex = NODE_Z_INDEX - node.depth;
+
+  /* -- 要素位置のベクトル計算 -- */
 
   /**
    * detailの中心位置
@@ -66,34 +84,31 @@ export function EvolutionBranch({
   const detailCenter = new Vector(DETAIL_WIDTH, DETAIL_HEIGHT).mult(1 / 2);
 
   /**
-   * 枝の矢印の中点に移動
+   * 枝の中点に移動
    */
   const detailShifter = branch.mult(1 / 2);
 
   /**
-   * branch方向に矢尻のすぐ上へスライド
+   * stickが有効ならbranch方向に矢尻のすぐ上へスライド
    */
   const stickyShifter = branch.scale(DETAIL_HEIGHT / 2 + ARROW_WIDTH);
 
   /**
-   * 横配置の時はx方向、縦配置の時はy方向にNodeの半径分調整
+   * 横配置の時はx方向(1,0)、縦配置の時はy方向(0,1)にNodeの半径分調整
    */
-  const nodeOffset = new Vector(
-    Number(isHorizontal),
-    Number(!isHorizontal)
-  ).mult(node.size / 2);
+  const nodeOffset = Vector.basis[Number(!isHorizontal)].mult(node.size / 2);
 
   /**
    * detailの位置ベクトル
    *  detailの中心をNodeの中心に一致させ、branch方向へ半分だけスライド
+   * ただしstickが有効ならstickyShifterを使用
    */
   const detail = shouldDetailsStick
     ? detailCenter.add(stickyShifter)
     : detailCenter.sub(nodeOffset).add(detailShifter);
 
   /**
-   * 親Node（進化元）が見えない時はdetailの上に小さく表示
-   * 　stickyParentの中心をNodeの中心に一致させ、detailの高さを超えるようにbranch方向へスライド
+   * stickyParentの中心をNodeの中心に一致させ、detailの高さを超えるようにbranch方向へスライド
    */
   const stickyParent = new Vector(1, 1)
     .mult(PARENT_SIZE / 2)
@@ -141,7 +156,7 @@ export function EvolutionBranch({
           top: `${BRANCH_STROKE / 2 + arrowHead.y}px`,
           right: arrowHead.x,
           transformOrigin: "100% 50%",
-          zIndex: isFocused ? "2" : "-1",
+          zIndex: isFocused ? `${focusedZIndex}` : "-1",
           transform: `translateX(${node.size / 2}px) rotate(${rot}deg)`,
           width: `${ARROW_WIDTH + node.size / 2}px`,
           height: `${ARROW_HEIGHT}px`,
@@ -157,7 +172,7 @@ export function EvolutionBranch({
             height: PARENT_SIZE,
             left: `${-stickyParent.x}px`,
             top: `${-stickyParent.y}px`,
-            zIndex: isFocused ? "100" : "1",
+            zIndex: isFocused ? NODE_Z_INDEX : "1",
           }}
         >
           <Image src={parent.imageUrl} width={40} height={40} alt="" />
@@ -165,7 +180,7 @@ export function EvolutionBranch({
       )}
       <div
         ref={detailRef}
-        data-part="detail"
+        data-part="details"
         className={`${
           isHorizontal ? "" : "pointer-events-none"
         } absolute text-xs bg-white border-2 rounded-sm border-gray-500 cursor-pointer transition-transform duration-300 ${
@@ -175,10 +190,10 @@ export function EvolutionBranch({
           left: `${-detail.x}px`,
           top: `${-detail.y}px`,
           width: `${DETAIL_WIDTH}px`,
-          zIndex: isFocused ? "100" : "1",
+          zIndex: isFocused ? NODE_Z_INDEX : "1",
         }}
       >
-        <ul>
+        <ul data-part="details-list">
           {details.map((detail, d) => (
             <li key={d}>
               <div
@@ -189,7 +204,7 @@ export function EvolutionBranch({
                 {evolutionTriggerTranslations[detail.trigger] ?? detail.trigger}
               </div>
               {detail.requirements.length > 0 && (
-                <ul>
+                <ul data-part="requirements-list">
                   {detail.requirements.map((rq, r) => (
                     <li
                       key={r}

@@ -16,35 +16,39 @@ import {
   EvolutionChain,
   ProcessedEvolutionChain,
   EvolvesTo,
-  ProcessedEvolutionTo,
-  EvolutionDetails,
-  ProcessedEvolutionDetails,
+  ProcessedEvolvesTo,
+  EvolutionDetail,
+  ProcessedEvolutionDetail,
 } from "@/lib/types";
 
 import {
   BASE_URL,
   LIST_PER_PAGE,
   evolutionDetailTranslations,
-  indexedTerms,
+  evolutionTerms,
   defaultObject,
 } from "@/lib/constants";
 
-export const POKEMON_ID_UPPER = await (async () => {
-  const res = await fetch(`${BASE_URL}/pokemon-species/?limit=0`);
-  const data: PokemonListResponse = await res.json();
-  return data.count;
-})();
-
-const SAFE_POKEMON_LIMIT = POKEMON_ID_UPPER - 20;
+import { doFetchByDivision } from "@/lib/functions";
 
 /**
- * ポケモン一覧を取得する
+ * APIリクエスト
  */
-async function fetchAPIData<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+export async function fetchAPIData<T>(
+  url: string,
+  option: object = {}
+): Promise<T> {
+  const res = await fetch(url, option);
   const data = await res.json();
   return data;
 }
+
+export const POKEMON_ID_UPPER = await (async () => {
+  const data = await fetchAPIData<{ count: number }>(
+    `${BASE_URL}/pokemon-species/?limit=0`
+  );
+  return data.count;
+})();
 
 /**
  * ポケモン一覧を処理済みデータとして取得する
@@ -63,7 +67,7 @@ export async function getProcessedPokemonList(
 
   const requestUrl = `${BASE_URL}/pokemon?offset=${
     (page - 1) * limit
-  }&limit=${Math.min(requestLimit, SAFE_POKEMON_LIMIT)}`;
+  }&limit=${Math.min(requestLimit, POKEMON_ID_UPPER)}`;
 
   const pokemonListRes = await fetchAPIData<PokemonListResponse>(
     requestUrl
@@ -133,6 +137,9 @@ async function processPokemon(pokemon: Pokemon): Promise<ProcessedPokemon> {
   return processed;
 }
 
+/**
+ * PokemonAbilityをアプリ用に加工整形
+ */
 async function processAbility(
   ability: PokemonAbility
 ): Promise<ProcessedAbility> {
@@ -172,13 +179,13 @@ function getPokemonImageUrl(sprites: Pokemon["sprites"]): string {
 
 /**
  *
- * 任意のキーの多言語配列から日本語を取得
- * @param items
- * @param targetKey
- * @param en_fallback
+ * 任意の対象プロパティーを持つ多言語配列から日本語に対応する対象プロパティーを取得
+ * @param items 多言語配列
+ * @param targetKey 取り出したいプロパティーのキー
+ * @param en_fallback 見つからない時にenの値を返す
  * @returns
  */
-function getJapanese<T extends MultiLangItem>(
+export function getJapanese<T extends MultiLangItem>(
   items: T[],
   targetKey: keyof T,
   en_fallback: boolean = false
@@ -230,30 +237,25 @@ export async function getPokemonSearchList(
 ): Promise<PokemonForSearch[]> {
   const listUrl = `${BASE_URL}/pokemon?offset=${0}&limit=${Math.min(
     n,
-    SAFE_POKEMON_LIMIT
+    POKEMON_ID_UPPER
   )}`;
 
-  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl).catch(
-    () => {
-      throw "Pokemon list Response Error";
-    }
-  );
+  const pokemonListRes = await fetchAPIData<PokemonListResponse>(listUrl, {
+    next: { revalidate: 180 },
+  }).catch(() => {
+    throw "Pokemon list Response Error";
+  });
 
-  const searchPokemons = await Promise.all(
+  const searchPokemons = await doFetchByDivision(
     pokemonListRes.results.map((pokemon) =>
-      getPokemonForSearch(
-        pokemon.url.replace(`${BASE_URL}/pokemon/`, "").replace("/", "")
-      )
-    )
+      pokemon.url.replace(`${BASE_URL}/pokemon/`, "").replace("/", "")
+    ),
+    getPokemonForSearch,
+    100,
+    10
   );
 
-  /*.then((result) =>
-    result
-      .filter((data) => data.status === "fulfilled")
-      .map((data) => data.value)
-  );*/
-
-  return searchPokemons;
+  return searchPokemons.fulfilled;
 }
 
 /**
@@ -262,29 +264,24 @@ export async function getPokemonSearchList(
 export async function getPokemonForSearch(
   idOrName: number | string
 ): Promise<PokemonForSearch> {
-  try {
-    const detail = await fetchAPIData<PokemonSpeciesDetail>(
-      `${BASE_URL}/pokemon-species/${idOrName}`
-    );
+  const detail = await fetchAPIData<PokemonSpeciesDetail>(
+    `${BASE_URL}/pokemon-species/${idOrName}`
+  );
 
-    return {
-      id: detail.id,
-      name: detail.name,
-      japaneseName: getJapaneseName(detail.names) ?? detail.name,
-    };
-  } catch (error) {
-    return defaultObject<PokemonForSearch>("PokemonForSearch");
-  }
+  return {
+    id: detail.id,
+    name: detail.name,
+    japaneseName: getJapaneseName(detail.names) ?? detail.name,
+  };
 }
 
 /*-- 進化 --*/
 
-async function fetchEvolutionChain(url: string): Promise<EvolutionChain> {
-  const res = await fetch(url);
-  const data = await res.json();
-  return data;
-}
-
+/**
+ * idOrNameからSpeciesDetail->evolution_chainの順にリクエストするとEvolutionChainが返ってくるので、chainプロパティをアプリ用に整形する
+ * @param idOrName
+ * @returns
+ */
 export async function getProcessedEvolutionChain(
   idOrName: string | number
 ): Promise<ProcessedEvolutionChain> {
@@ -293,7 +290,9 @@ export async function getProcessedEvolutionChain(
       `${BASE_URL}/pokemon-species/${idOrName}`
     );
 
-    const chain = await fetchEvolutionChain(pokemon.evolution_chain.url);
+    const chain = await fetchAPIData<EvolutionChain>(
+      pokemon.evolution_chain.url
+    );
 
     const processedEvolution = await processEvolution(chain.chain);
 
@@ -309,9 +308,14 @@ export async function getProcessedEvolutionChain(
   }
 }
 
+/**
+ * EvolvesToをアプリ用に加工整形
+ * @param evolution
+ * @returns
+ */
 async function processEvolution(
   evolution: EvolvesTo
-): Promise<ProcessedEvolutionTo> {
+): Promise<ProcessedEvolvesTo> {
   const speciesDetail = await fetchAPIData<PokemonSpeciesDetail>(
     evolution.species.url
   ).catch(() => {
@@ -331,7 +335,7 @@ async function processEvolution(
     evolution.evolution_details.map((detail) => processEvolutionDetail(detail))
   );
 
-  const processed: ProcessedEvolutionTo = {
+  const processed: ProcessedEvolvesTo = {
     evolution_details: evolution.evolution_details,
     is_baby: evolution.is_baby,
     species: evolution.species,
@@ -346,13 +350,24 @@ async function processEvolution(
   return processed;
 }
 
+/**
+ * EvolutionDetailをアプリ用に加工整形
+ *
+ * + EvolutionDetailのキーをタイトルに翻訳または変換
+ * + EvolutionDetailの値を条件に変換し配列に並べる
+ * @param detail
+ * @returns
+ */
 async function processEvolutionDetail(
-  details: EvolutionDetails
-): Promise<ProcessedEvolutionDetails> {
+  detail: EvolutionDetail
+): Promise<ProcessedEvolutionDetail> {
+  /**
+   * 真のときのみ特定の条件文言を表示するもの
+   */
   const useBooleans = ["needs_overworld_rain", "turn_upside_down"];
 
   /**
-   * 数値をそのまま使用
+   * 数値をそのまま条件として使用するもの
    */
   const useNumbers = [
     "min_affection",
@@ -362,12 +377,12 @@ async function processEvolutionDetail(
   ];
 
   /**
-   * 番号に用語を紐付け
+   * 番号に用語を紐付けするもの
    */
   const useIds = ["gender", "relative_physical_stats", "region_id"];
 
   /**
-   * urlにリクエスト
+   * NamedApiResourceのurlにリクエストするもの
    */
   const useNames = [
     "held_item",
@@ -381,75 +396,88 @@ async function processEvolutionDetail(
   ];
 
   /**
-   * 文字列をそのまま使用
+   * 文字列をそのまま条件として使用するもの
    */
   const useValues = ["time_of_day"];
 
   /**
-   * 特殊条件を表示
+   * 対象が1体しかいないようなtrigger
+   * (detailsの条件は全てnullや空文字になっている)
    */
-  const specialTriggers = ["shed", "tower-of-darkness", "tower-of-waters"];
+  const specialTriggers = Object.keys(evolutionTerms.special);
 
   const requirements: {
     title: string;
     description: string;
   }[] = [];
 
-  for (const key of Object.keys(details) as (keyof EvolutionDetails)[]) {
-    if (details[key] === null || details[key] === "") continue;
+  //EvolutionDetailの型に応じて整形
+  for (const key of Object.keys(detail) as (keyof EvolutionDetail)[]) {
+    if (detail[key] === null || detail[key] === "") continue;
 
     if (
-      typeof details[key] === "boolean" &&
+      typeof detail[key] === "boolean" &&
       useBooleans.includes(key) &&
-      details[key]
+      detail[key]
     ) {
       requirements.push({
         title: "特殊条件",
         description: evolutionDetailTranslations[key] ?? key,
       });
-    } else if (typeof details[key] === "number" && useNumbers.includes(key)) {
+    } else if (typeof detail[key] === "number" && useNumbers.includes(key)) {
       requirements.push({
         title: evolutionDetailTranslations[key] ?? key,
-        description: `${details[key]}以上`,
+        description: `${detail[key]}以上`,
       });
-    } else if (typeof details[key] === "number" && useIds.includes(key)) {
+    } else if (typeof detail[key] === "number" && useIds.includes(key)) {
       requirements.push({
         title: evolutionDetailTranslations[key] ?? key,
-        description: indexedTerms[key][`${details[key]}`],
+        description: evolutionTerms[key][`${detail[key]}`],
       });
-    } else if (typeof details[key] === "object" && useNames.includes(key)) {
-      const translate = await translateEvolutionRequirement(details[key]).catch(
+    } else if (typeof detail[key] === "object" && useNames.includes(key)) {
+      const translate = await translateEvolutionRequirement(detail[key]).catch(
         () => null
       );
+      //APIにある日本語 -> evolutionTermsに定義した日本語 -> 英語そのままの優先順
       requirements.push({
         title: evolutionDetailTranslations[key] ?? key,
         description:
           translate ??
-          indexedTerms[key]?.[details[key]?.name ?? ""] ??
-          details[key]?.name,
+          evolutionTerms[key]?.[detail[key].name] ??
+          detail[key].name,
       });
-    } else if (typeof details[key] === "string" && useValues.includes(key)) {
+    } else if (typeof detail[key] === "string" && useValues.includes(key)) {
+      //APIにある日本語 -> evolutionTermsに定義した日本語 -> 英語そのままの優先順
       requirements.push({
         title: evolutionDetailTranslations[key] ?? key,
-        description: indexedTerms[key]?.[details[key]] ?? details[key],
+        description: evolutionTerms[key]?.[detail[key]] ?? detail[key],
       });
     }
   }
-  if (specialTriggers.includes(details.trigger.name)) {
+
+  /**
+   * トリガーが特殊でdetail条件が全て空のもの
+   */
+  if (specialTriggers.includes(detail.trigger.name)) {
     requirements.push({
       title: "条件",
-      description: indexedTerms.special?.[details.trigger.name] ?? "-",
+      description: evolutionTerms.special?.[detail.trigger.name] ?? "-",
     });
   }
 
-  const processed: ProcessedEvolutionDetails = {
-    trigger: details.trigger.name,
+  const processed: ProcessedEvolutionDetail = {
+    trigger: detail.trigger.name,
     requirements: requirements,
   };
 
   return processed;
 }
 
+/**
+ * EvolutionDetailがNamedApiResourceで返ってくるものはリクエストして日本語を取得する
+ * @param require
+ * @returns
+ */
 async function translateEvolutionRequirement(
   require: NamedApiResource | null
 ): Promise<string | undefined> {
@@ -458,5 +486,5 @@ async function translateEvolutionRequirement(
     throw "Pokemon evolution detail Response Error";
   });
 
-  return getJapanese(data.names, "name");
+  return getJapaneseName(data.names);
 }

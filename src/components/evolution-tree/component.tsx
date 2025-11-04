@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 
-import { ProcessedEvolutionTo, pokemonBasic } from "@/lib/types";
+import { ProcessedEvolvesTo, pokemonBasic } from "@/lib/types";
 import useGetElementProperty from "@/lib/UseGetElementProperty";
 import useWindowWidth from "@/lib/UseWindowWidth";
 
@@ -11,23 +11,29 @@ import { EvolutionBranch } from "@/components/evolution-branch/component";
 import { Vector } from "@/lib/Vector";
 
 /**
- * フシギダネ：1
- * ツチニン：290
- * ストライク：123
- * イーブイ：133
- * キルリア:280
- * ケムッソ：265
+ * 表示確認用
+ * フシギダネ：1 -> 分岐なし3段進化
+ * ツチニン：290 -> 進化Triggerが特殊
+ * ストライク：123 -> 分岐あり2段進化
+ * イーブイ：133 -> 最多分岐2段進化
+ * ケムッソ：265 -> 3段進化1段目で分岐
+ * キルリア:280 -> 3段進化2段目で分岐
+ * デスバーン:867 -> 進化Triggerが特殊
+ * ダクマ:891 -> 進化Triggerが特殊
  */
 
 interface EvolutionTreeProps {
   parent?: pokemonBasic;
-  pokemon: ProcessedEvolutionTo;
+  pokemon: ProcessedEvolvesTo;
   depth: number;
   nodeId: number;
   current: number;
   siblings: number;
 }
 
+/**
+ * 進化系統図のツリー構造の再帰的繰り返し単位
+ */
 export function EvolutionTree({
   parent,
   pokemon,
@@ -46,7 +52,7 @@ export function EvolutionTree({
   const isHorizontal = windowWidth > 960;
 
   const NODE_SIZE = 160;
-  const GENERATION_GAP = isHorizontal ? 200 : 120;
+  const GENERATION_GAP = isHorizontal ? 200 : 160;
   const SIBLINGS_GAP = 40;
   const SCATTER_UNIT = windowWidth / 2;
 
@@ -69,13 +75,15 @@ export function EvolutionTree({
   /**
    * 縦配置の時はIdが大きいNodeほど兄弟間隔（SIBLINGS_GAP）分下げる
    * 子（進化先）があるときは世代間隔（GENERATION_GAP）も考慮する
+   *
+   * NOTE:厳密には兄（nodeIdが自分より小さい兄弟要素）全てに進化先があるかを考慮してその合計分下げる必要があるが、分岐ごとに進化段数が異なるポケモンは（今のところ）存在しないので、自分自身の進化先の有無で判定すれば足りる
    */
   const extension = isHorizontal
     ? 0
     : nodeId * (nodeDistance.y + (evolvesTo.length > 0 ? nodeDistance.x : 0));
 
   /**
-   * 縦配置の時
+   * 縦配置の時の座標
    * Xは左右に散らす、Yは90度回転したものを延長する
    */
   const vX = shouldScatter ? ((nodeId % 2) - 0.5) * SCATTER_UNIT : 0;
@@ -83,7 +91,8 @@ export function EvolutionTree({
 
   /**
    * 横配置の時
-   * 世代内の番号を中心水平線からのoffsetに変換
+   * 世代内の番号を中心水平線からの線対称なoffsetに変換
+   * + 例 [0,1,2] -> [-1,0,1]
    */
   const offsetY = nodeId - (siblings - 1) / 2;
 
@@ -122,6 +131,7 @@ export function EvolutionTree({
       onTouchStart={touchBranch}
       style={{ left: `${vX}px` }}
     >
+      {/* 1段目（depth = 0）は枝を描かない */}
       {depth > 0 && (
         <EvolutionBranch
           parent={parent}
@@ -132,12 +142,7 @@ export function EvolutionTree({
             y: nodeRect.y,
           }}
           branch={nodeCenter}
-          details={conditions.map((condition) => {
-            return {
-              trigger: condition.trigger,
-              requirements: condition.requirements,
-            };
-          })}
+          details={conditions}
           isFocused={isFocused}
           isHorizontal={isHorizontal}
         ></EvolutionBranch>
@@ -150,6 +155,7 @@ export function EvolutionTree({
         isCurrent={current === pokemon.id}
         depth={depth}
       ></EvolutionNode>
+      {/* 進化先があれば再帰的にツリーを呼び出し */}
       {evolvesTo.length > 0 && (
         <div
           className="flex items-center flex-col"

@@ -6,11 +6,35 @@ import {
   ProcessedEvolutionChain,
 } from "@/lib/types";
 
+/**
+ * pokeapiのベース
+ */
 export const BASE_URL = "https://pokeapi.co/api/v2";
 
+/**
+ * localStorageのキー
+ */
+export const LOCAL_STORAGE_APP_KEY = "mypokedex";
+
+/**
+ * 一覧ページのページング単位
+ */
 export const LIST_PER_PAGE = 20;
+
+/**
+ * 検索ページのページング単位
+ */
 export const SEARCH_PER_PAGE = 10;
 
+/**
+ * 進化系統図のNodeのz-indexの初期値
+ * 進化の最大段数（普通は2）より十分大きければよい
+ */
+export const NODE_Z_INDEX = 100;
+
+/**
+ * タイプ名の翻訳
+ */
 export const typeTranslations: Record<string, string> = {
   normal: "ノーマル",
   fire: "ほのお",
@@ -32,6 +56,9 @@ export const typeTranslations: Record<string, string> = {
   fairy: "フェアリー",
 };
 
+/**
+ * 進化トリガーの翻訳
+ */
 export const evolutionTriggerTranslations: Record<string, string> = {
   "level-up": "レベルアップ",
   "use-item": "アイテム使用",
@@ -48,6 +75,9 @@ export const evolutionTriggerTranslations: Record<string, string> = {
   "recoil-damage": "反動ダメージ",
 };
 
+/**
+ * 進化条件の翻訳
+ */
 export const evolutionDetailTranslations: Record<string, string> = {
   gender: "性別",
   held_item: "持ち物",
@@ -69,24 +99,36 @@ export const evolutionDetailTranslations: Record<string, string> = {
   turn_upside_down: "本体の上下を逆さに",
 };
 
-export const indexedTerms: Record<string, Record<string, string>> = {
-  gender: { 1: "メス", 2: "オス" },
+/**
+ * EvolutionDetailのAPI返り値を項目ごとに対応する日本語に変換
+ */
+export const evolutionTerms: Record<string, Record<string, string>> = {
+  gender: { "1": "メス", "2": "オス" },
   relative_physical_stats: {
     "-1": "こうげき < ぼうぎょ",
-    0: "こうげき = ぼうぎょ",
-    1: "こうげき > ぼうぎょ",
+    "0": "こうげき = ぼうぎょ",
+    "1": "こうげき > ぼうぎょ",
   },
+  /**
+   * NOTE:pokeapiの``/location``には約1080程度の登録があり、そこから日本語訳がないものを取得して翻訳し辞書を作成すると万全になるが、場所を条件に進化するポケモンは限られているので現状そこまでする必要はない
+   */
   location: {
     "eterna-forest": "ハクタイのもり",
+    "mt-coronet": "テンガンざん",
+    "sinnoh-route-217": "217ばんどうろ",
   },
   time_of_day: { day: "昼", night: "夜", "full-moon": "満月の夜" },
   special: {
     "tower-of-darkness": "悪の塔で見せる",
     "tower-of-waters": "水の塔で見せる",
     shed: "手持ちに空きがある状態で進化",
+    "take-damage": "ダメージ49以上で、「さじんのくぼち」の岩のアーチの下へ行く",
   },
 };
 
+/**
+ * タイプに対応するtailwind色クラス
+ */
 export const typeColors: Record<string, string> = {
   from_normal: "from-type-normal",
   to_normal: "to-type-normal",
@@ -161,6 +203,9 @@ export const typeColors: Record<string, string> = {
   fairy: "bg-type-fairy",
 };
 
+/**
+ * タイプの背景色とのコントラストを考慮したテキストカラー
+ */
 const typeTextColorGroups: Record<string, string[]> = {
   white: [
     "fire",
@@ -190,6 +235,11 @@ export const typeTextColor = (type: string) => {
   return hit.length > 0 ? hit[0] : null;
 };
 
+/**
+ * pokeapiが返却するオブジェクトのデフォルト
+ * @param type
+ * @returns
+ */
 export const defaultObject = <T>(type: string): T => {
   const nullNamedAPIResource: NamedApiResource = { name: "", url: "" };
 

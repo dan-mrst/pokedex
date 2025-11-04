@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
+
 import { Loading } from "@/components/loading";
 import { ToList } from "@/components/to-list";
 

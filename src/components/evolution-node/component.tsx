@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import Link from "next/link";
 import Image from "next/image";
+import { NODE_Z_INDEX } from "@/lib/constants";
 import { pokemonBasic } from "@/lib/types";
 import { isTouchDevice } from "@/lib/functions";
 
@@ -20,6 +21,10 @@ interface EvolutionNodeProps {
   depth: number;
 }
 
+/**
+ * 進化系統図のNode（各ポケモンに対応）
+ * hover/touchするとそのポケモンまでの進化系統（BranchとdetailとNode）をハイライト
+ */
 export function EvolutionNode({
   nodeId,
   size,
@@ -30,13 +35,16 @@ export function EvolutionNode({
 }: EvolutionNodeProps) {
   const nodeRef = useRef<HTMLAnchorElement>(null);
 
+  //タッチデバイスではリンクの有効化/無効化により1回目のタップをホバーのように扱う
   const [isLinkActive, setIsLinkActive] = useState<boolean>(
     !isTouchDevice() || false
   );
 
+  //要素外のタップでLinkを無効化
   useEffect(() => {
     if (!nodeRef.current) return;
     const hundleClickOutside = (e: MouseEvent) => {
+      if (!isTouchDevice()) return;
       if (!nodeRef.current?.contains(e.target as Node)) {
         setIsLinkActive(false);
       }
@@ -49,6 +57,10 @@ export function EvolutionNode({
     };
   }, [nodeRef]);
 
+  /**
+   * 要素のタップでリンクの有効/無効をトグル
+   * 無効時はページ遷移をキャンセル
+   */
   const handleLink = (e: React.MouseEvent<HTMLElement>) => {
     if (!isTouchDevice()) return;
     if (!isLinkActive) {
@@ -59,6 +71,10 @@ export function EvolutionNode({
     }
   };
 
+  /**
+   * タッチデバイス用の要素注目判定
+   * (クリックデバイスのisFocusedに相当する)
+   */
   const isTouched = isTouchDevice() && isFocused && isLinkActive;
 
   return (
@@ -89,7 +105,7 @@ export function EvolutionNode({
         style={{
           width: `${size}px`,
           height: `${size}px`,
-          zIndex: 100 - depth,
+          zIndex: NODE_Z_INDEX - depth,
         }}
         data-name={pokemon.name}
       >
@@ -102,6 +118,7 @@ export function EvolutionNode({
             </div>
 
             <div className="font-bold">{pokemon.japaneseName}</div>
+            {/* タッチデバイスでは要素がリンク化したことを明示 */}
             {isTouched && (
               <div
                 className={`${

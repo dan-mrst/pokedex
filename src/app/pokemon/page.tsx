@@ -1,11 +1,11 @@
 import { Loading } from "@/components/loading";
-import { getProcessedPokemonList } from "@/lib/pokeapi";
+
 import { Suspense } from "react";
 import { Metadata } from "next";
 
 import { PaginationComponent } from "@/components/pagination/component";
 import { PokemonCard } from "@/components/pokemon-card";
-
+import { getProcessedPokemonList } from "@/lib/pokeapi";
 import { LIST_PER_PAGE } from "@/lib/constants";
 
 interface SearchParams {
@@ -26,7 +26,10 @@ export async function generateMetadata({
 
 export default async function PokemonListPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
-  const currentPage = Number(resolvedParams.page) || 1;
+  const currentPage =
+    isNaN(Number(resolvedParams.page)) || Number(resolvedParams.page) < 0
+      ? 0
+      : Number(resolvedParams.page);
 
   return (
     <div className="wrapper">
@@ -54,7 +57,7 @@ async function PokemonListContent({ page }: { page: number }) {
             ))}
           </ul>
         )}
-        {processedList.pokemon.length <= 0 && (
+        {(page <= 0 || processedList.pokemon.length <= 0) && (
           <div className="text-center text-sm text-gray-400">
             表示するポケモンがありません
           </div>

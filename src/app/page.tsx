@@ -12,26 +12,6 @@ import {
 import { Grid3x2, Search } from "lucide-react";
 
 export default function Home() {
-  const types = [
-    "normal",
-    "fire",
-    "water",
-    "grass",
-    "electric",
-    "ice",
-    "fighting",
-    "poison",
-    "ground",
-    "flying",
-    "psychic",
-    "bug",
-    "rock",
-    "ghost",
-    "dragon",
-    "dark",
-    "steel",
-    "fairy",
-  ];
   return (
     <div className="wrapper">
       <nav>

@@ -164,6 +164,14 @@ export interface ProcessedAbility {
 
 /*-- 進化 --*/
 
+/*
+ * EvolutionChain: /evolution-chain/~ のレスポンス
+ * chain: 進化先と条件を再帰的構造で示したもの
+ * evolves_to: chainの再帰構造の繰り返し単位
+ * evolution_details: 進化条件の詳細
+ *  trigger（例：レベルアップ）と条件（例：レベルxx以上）群からなる
+ */
+
 /**
  * evolution-chainのレスポンス
  */
@@ -177,7 +185,7 @@ export interface EvolutionChain {
  * evolves_toの再帰的型
  */
 export interface EvolvesTo {
-  evolution_details: EvolutionDetails[];
+  evolution_details: EvolutionDetail[];
   evolves_to: EvolvesTo[];
   is_baby: boolean;
   species: NamedApiResource;
@@ -186,7 +194,7 @@ export interface EvolvesTo {
 /**
  * 進化の詳細
  */
-export interface EvolutionDetails {
+export interface EvolutionDetail {
   gender: number | null;
   held_item: NamedApiResource | null;
   item: NamedApiResource | null;
@@ -209,22 +217,39 @@ export interface EvolutionDetails {
 }
 
 /**
- * アプリ内で使用する処理済み進化データ
+ * アプリ内で使用する処理済み進化チェーンデータ
  */
 export interface ProcessedEvolutionChain extends EvolutionChain {
-  chain: ProcessedEvolutionTo;
-}
-export interface ProcessedEvolutionTo extends EvolvesTo, pokemonBasic {
-  evolves_to: ProcessedEvolutionTo[];
-  conditions: ProcessedEvolutionDetails[];
+  chain: ProcessedEvolvesTo;
 }
 
-export interface ProcessedEvolutionDetails {
+/**
+ * アプリ内で使用する処理済み進化先データ
+ */
+export interface ProcessedEvolvesTo extends EvolvesTo, pokemonBasic {
+  evolves_to: ProcessedEvolvesTo[];
+  conditions: ProcessedEvolutionDetail[];
+}
+
+/**
+ * アプリ内で使用する処理済み進化条件詳細データ
+ */
+export interface ProcessedEvolutionDetail {
   trigger: string;
   requirements: {
     title: string;
     description: string;
   }[];
+}
+
+/**
+ * evolution-triggerのレスポンス
+ */
+export interface EvolutionTrigger {
+  id: number;
+  name: string;
+  names: Name[];
+  pokemon_species: NamedApiResource[];
 }
 
 /**
@@ -236,14 +261,4 @@ export interface PaginationInfo {
   hasNext: boolean;
   hasPrev: boolean;
   totalCount: number;
-}
-
-/**
- * evolution-triggerのレスポンス
- */
-export interface EvolutionTrigger {
-  id: number;
-  name: string;
-  names: Name[];
-  pokemon_species: NamedApiResource[];
 }
