@@ -61,11 +61,11 @@ export function PaginationButtons({
   const omitter = new PaginationOmitter(paginator, 2);
 
   const {
-    shouldShowOmittedLeft,
-    shouldShowPageInLeft,
+    shouldDisplayOmittedLeft,
+    shouldDisplayPageInLeft,
     isPageWithinRange,
-    shouldShowPageInRight,
-    shouldShowOmittedRight,
+    shouldDisplayPageInRight,
+    shouldDisplayOmittedRight,
   } = omitter;
 
   return (
@@ -82,7 +82,7 @@ export function PaginationButtons({
           </PaginationItem>
         )}
 
-        {shouldShowOmittedLeft() && (
+        {shouldDisplayOmittedLeft() && (
           <>
             <PaginationItem key={1}>
               <PaginationLink
@@ -103,9 +103,9 @@ export function PaginationButtons({
           .map((_, p) => p + 1)
           .filter(
             (p) =>
-              shouldShowPageInLeft(p) ||
+              shouldDisplayPageInLeft(p) ||
               isPageWithinRange(p) ||
-              shouldShowPageInRight(p)
+              shouldDisplayPageInRight(p)
           )
           .map((p) => (
             <PaginationItem key={p}>
@@ -118,7 +118,7 @@ export function PaginationButtons({
             </PaginationItem>
           ))}
 
-        {shouldShowOmittedRight() && (
+        {shouldDisplayOmittedRight() && (
           <>
             <PaginationItem>
               <PaginationEllipsis />

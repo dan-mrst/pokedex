@@ -64,8 +64,6 @@ export function EvolutionNode({
     if (!isLinkActive) {
       e.preventDefault();
       setIsLinkActive(true);
-    } else {
-      setIsLinkActive(false);
     }
   };
 
@@ -86,17 +84,13 @@ export function EvolutionNode({
       <Node
         id={`evolutionNode-${depth}-${nodeId}`}
         className={`bg-white relative hover:shadow-lg transition-shadow cursor-pointer ${
-          isCurrent
-            ? "border-primary-400"
-            : isFocused
-            ? "border-secondary-500"
-            : "border-gray-300"
+          isCurrent ? "border-primary-400" : "border-gray-300"
         }
         ${
           !isTouchDevice()
-            ? "hover:scale-105"
+            ? "hover:scale-105 hover:border-secondary-500"
             : isTouched
-            ? "scale-105 sm:scale-110"
+            ? "scale-105 sm:scale-110 border-secondary-500"
             : ""
         }
         transition-transform duration-300`}

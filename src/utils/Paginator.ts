@@ -20,6 +20,18 @@ export class Paginator {
     this._totalPages = Math.ceil(this._totalCount / this._perPage);
   }
 
+  /**
+   * stringで与えられるpageが設定されていなければ1に、数字ならそのまま、NaNなら0に正規化する
+   * @param pageParam
+   * @returns number
+   */
+  static getPageByParam = (pageParam: string | undefined) =>
+    typeof pageParam === "undefined"
+      ? 1
+      : isNaN(Number(pageParam))
+      ? 0
+      : Number(pageParam);
+
   get currentPage() {
     return this._currentPage;
   }
@@ -43,19 +55,37 @@ export class Paginator {
     this._totalCount = _totalCount;
   }
 
+  /**
+   * 次のページがあるか
+   */
   hasNext = () => this._currentPage + 1 <= this._totalPages;
 
+  /**
+   * 前のページがあるか
+   */
   hasPrev = () => this._currentPage > 1;
 
+  /**
+   * ページネーション対象アイテムの存在判定
+   */
   shouldPaginate = () => this._totalCount > 0;
 
+  /**
+   * 現在のページが適正な範囲にあるか判定
+   */
   isCorrectPage = () =>
     this._totalCount > 0 &&
     this._currentPage > 0 &&
     this._currentPage <= this._totalPages;
 
+  /**
+   * 現在のページの最初のアイテムのインデックス
+   */
   firstItemOfCurrentPage = () => this._perPage * (this._currentPage - 1) + 1;
 
+  /**
+   * 現在のページの最後のアイテムのインデックス
+   */
   lastItemOfCurrentPage = () =>
     Math.min(this._totalCount, this._perPage * this._currentPage);
 
@@ -65,22 +95,10 @@ export class Paginator {
   isItemInCurrentPage = (itemIndex: number) =>
     this._perPage * (this._currentPage - 1) - 1 < itemIndex &&
     itemIndex < this._perPage * this._currentPage;
-
-  /**
-   * クエリパラメータpageがなければ1に、数字ならそのまま、NaNなら0に正規化する
-   * @param pageParam
-   * @returns number
-   */
-  static getPageByParam = (pageParam: string | undefined) =>
-    typeof pageParam === "undefined"
-      ? 1
-      : isNaN(Number(pageParam))
-      ? 0
-      : Number(pageParam);
 }
 
 /**
- * ページネーション情報と表示範囲の大きさを指定し、ページネーションコンポーネントのボタン省略をコントロール
+ * ページネーション情報と表示範囲の大きさ（幅）を指定し、ページネーションコンポーネントのボタン省略をコントロール
  */
 export class PaginationOmitter extends Paginator {
   private leftBoundary: number;
@@ -94,13 +112,13 @@ export class PaginationOmitter extends Paginator {
   /**
    * 左を省略して表示
    */
-  shouldShowOmittedLeft = () =>
+  shouldDisplayOmittedLeft = () =>
     this.currentPage - this.range > this.leftBoundary;
   /**
    * 1 … 3 4のような省略は無意味なので左範囲をすべて表示
    * <=> 現在のページの周辺範囲左端がleftBoundary以下にあるとき、p=leftBoundary未満は省略しない
    */
-  shouldShowPageInLeft = (p: number) =>
+  shouldDisplayPageInLeft = (p: number) =>
     this.currentPage - this.range <= this.leftBoundary && p < this.leftBoundary;
 
   /**
@@ -114,13 +132,13 @@ export class PaginationOmitter extends Paginator {
    * 7 8 … 10のような省略は無意味なので右範囲をすべて表示
    *  <=> 現在のページの周辺範囲右端がrightBoundary以上にあるとき、p=leftBoundaryより上は省略しない
    */
-  shouldShowPageInRight = (p: number) =>
+  shouldDisplayPageInRight = (p: number) =>
     this.currentPage + this.range >= this.rightBoundary &&
     p > this.rightBoundary;
 
   /**
    * 右を省略して表示
    */
-  shouldShowOmittedRight = () =>
+  shouldDisplayOmittedRight = () =>
     this.currentPage + this.range < this.rightBoundary;
 }

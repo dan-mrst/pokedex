@@ -16,27 +16,27 @@ export class Vector {
   }
 
   /**
-   * ノルム
+   * ノルム（絶対値）
    */
   get norm() {
     return this._norm;
   }
 
   /**
-   * 仰角
+   * 仰角（水平線からの角度）
    */
   get elevation() {
     return this._elevation;
   }
 
   /**
-   * 加法
+   * ベクトル加法
    */
   add(v: Vector) {
     return new Vector(this.x + v.x, this.y + v.y);
   }
   /**
-   * 減法
+   * ベクトル減法
    */
   sub(v: Vector) {
     return new Vector(this.x - v.x, this.y - v.y);
