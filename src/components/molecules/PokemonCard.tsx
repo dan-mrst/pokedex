@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { ProcessedPokemon } from "@/lib/types";
+
 import { typeColors } from "@/lib/constants";
+import { ProcessedPokemon } from "@/lib/types";
 
 interface PokemonCardProps {
   pokemon: ProcessedPokemon;

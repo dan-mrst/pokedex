@@ -1,13 +1,14 @@
 "use client";
 
-import { useRef } from "react";
 import Image from "next/image";
+import { useRef } from "react";
 
-import { ProcessedEvolutionDetail, pokemonBasic } from "@/lib/types";
 import { evolutionTriggerTranslations, NODE_Z_INDEX } from "@/lib/constants";
-import { toDegrees } from "@/utils/utils";
+import { ProcessedEvolutionDetail, pokemonBasic } from "@/lib/types";
 
 import useGetElementProperty from "@/hooks/useGetElementProperty";
+import { toDegrees } from "@/utils/utils";
+
 import { Vector } from "@/utils/Vector";
 
 interface EvolutionBranchProps {

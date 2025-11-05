@@ -1,9 +1,13 @@
-import { ReactNode, Suspense } from "react";
+import { ChevronLeft, ChevronRight, Network } from "lucide-react";
 import { Metadata } from "next";
-import Link from "next/link";
 import Image from "next/image";
-import { Loading } from "@/components/organisms/Loading";
+import Link from "next/link";
+import { ReactNode, Suspense } from "react";
+
 import { ToList } from "@/components/atoms/ToList";
+import { Loading } from "@/components/organisms/Loading";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
@@ -12,18 +16,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
-import { ChevronLeft, ChevronRight, Network } from "lucide-react";
-
+import { typeTranslations, typeTextColor } from "@/lib/constants";
 import {
   POKEMON_ID_UPPER,
   getProcessedPokemon,
   getPokemonForSearch,
 } from "@/lib/pokeapi";
 import { ProcessedPokemon } from "@/lib/types";
-import { typeTranslations, typeTextColor } from "@/lib/constants";
 
 interface Props {
   params: Promise<{ id: string }>;

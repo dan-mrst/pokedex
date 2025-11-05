@@ -1,4 +1,11 @@
 import {
+  BASE_URL,
+  LIST_PER_PAGE,
+  evolutionDetailTranslations,
+  evolutionTerms,
+  defaultObject,
+} from "@/lib/constants";
+import {
   Name,
   NamedApiResource,
   FlavorText,
@@ -21,15 +28,6 @@ import {
 } from "@/lib/types";
 
 import { PaginationInfo } from "@/utils/Paginator";
-
-import {
-  BASE_URL,
-  LIST_PER_PAGE,
-  evolutionDetailTranslations,
-  evolutionTerms,
-  defaultObject,
-} from "@/lib/constants";
-
 import { doFetchByDivision } from "@/utils/utils";
 
 /**

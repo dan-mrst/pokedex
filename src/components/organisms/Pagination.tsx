@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  PaginationInfo,
-  Paginator,
-  PaginationOmitter,
-} from "@/utils/Paginator";
-
-import {
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -15,6 +9,11 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import {
+  PaginationInfo,
+  Paginator,
+  PaginationOmitter,
+} from "@/utils/Paginator";
 
 interface PaginationButtonsProps {
   pagination: PaginationInfo;
