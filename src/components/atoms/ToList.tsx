@@ -2,7 +2,7 @@
 
 import { Grid3x2 } from "lucide-react";
 
-import { TransitionLink } from "@/components/TransitionLink";
+import { TransitionLink } from "@/components/atoms/TransitionLink";
 
 export function ToList() {
   return (

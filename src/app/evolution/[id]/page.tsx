@@ -2,15 +2,15 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { Loading } from "@/components/Loading";
-import { ToList } from "@/components/ToList";
-import { ToggleByIsTouch } from "@/components/ToggleByIsTouch";
+import { Loading } from "@/components/organisms/Loading";
+import { ToList } from "@/components/atoms/ToList";
+import { ToggleByIsTouch } from "@/components/atoms/ToggleByIsTouch";
 
 import { Undo2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { EvolutionTree } from "@/components/EvolutionTree";
+import { EvolutionTree } from "@/components/molecules/EvolutionTree";
 
 import {
   getProcessedPokemon,

@@ -1,26 +1,26 @@
-import { Suspense } from "react";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
-import { PokemonCard } from "@/components/PokemonCard";
+import { ToList } from "@/components/atoms/ToList";
+import { TransitionReset } from "@/components/atoms/TransitionLink";
+import { PokemonCard } from "@/components/molecules/PokemonCard";
+import { SearchForm } from "@/components/molecules/SearchForm";
+import { Loading } from "@/components/organisms/Loading";
 import {
   PaginationCounter,
-  PaginationComponent,
-} from "@/components/Pagination/component";
-import { SearchForm } from "@/components/SearchForm";
-import { Loading } from "@/components/Loading";
-import { ToList } from "@/components/ToList";
+  PaginationButtons,
+} from "@/components/organisms/Pagination";
 
+import { SEARCH_PER_PAGE } from "@/lib/constants";
 import {
   POKEMON_ID_UPPER,
   getPokemonSearchList,
   getProcessedPokemon,
 } from "@/lib/pokeapi";
-
 import { ProcessedPokemon } from "@/lib/types";
+
 import { PaginationInfo, Paginator } from "@/utils/Paginator";
-import { SEARCH_PER_PAGE } from "@/lib/constants";
 import { hiraToKata } from "@/utils/utils";
-import { TransitionReset } from "@/components/TransitionLink";
 
 interface SearchParams {
   q?: string;
@@ -129,10 +129,10 @@ function PokemonSearchResult({
         <div className="error-message">ページ指定が誤っています</div>
       )}
 
-      <PaginationComponent
+      <PaginationButtons
         pagination={pagination}
         basePath={`/search?q=${query}`}
-      ></PaginationComponent>
+      ></PaginationButtons>
     </div>
   );
 }

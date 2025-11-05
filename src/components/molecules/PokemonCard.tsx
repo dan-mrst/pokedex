@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProcessedPokemon, PokemonForSearch } from "@/lib/types";
+import { ProcessedPokemon } from "@/lib/types";
 import { typeColors } from "@/lib/constants";
 
 interface PokemonCardProps {
@@ -38,7 +38,9 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
                 {pokemon.id.toString().padStart(3, "0")}
               </div>
 
-              <div className="pokemon-name">{pokemon.japaneseName}</div>
+              <div className="font-semibold text-primary-950">
+                {pokemon.japaneseName}
+              </div>
             </div>
           </CardContent>
         </div>

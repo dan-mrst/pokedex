@@ -2,8 +2,8 @@ import { ReactNode, Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Loading } from "@/components/Loading";
-import { ToList } from "@/components/ToList";
+import { Loading } from "@/components/organisms/Loading";
+import { ToList } from "@/components/atoms/ToList";
 import {
   Card,
   CardHeader,

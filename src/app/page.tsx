@@ -1,16 +1,16 @@
-import Image from "next/image";
+import { Grid3x2, Search } from "lucide-react";
+
+import {
+  TransitionLink,
+  TransitionReset,
+} from "@/components/atoms/TransitionLink";
 import {
   Card,
-  CardAction,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Grid3x2, Search } from "lucide-react";
-
-import { TransitionLink, TransitionReset } from "@/components/TransitionLink";
 
 export default function Home() {
   return (

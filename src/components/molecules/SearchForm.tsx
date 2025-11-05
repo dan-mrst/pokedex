@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface SearchFormProps {
   initialQuery?: string;

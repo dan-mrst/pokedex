@@ -1,16 +1,14 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 
-import { cn } from "@/utils/utils";
-
-import Link from "next/link";
-import Image from "next/image";
 import { NODE_Z_INDEX } from "@/lib/constants";
 import { pokemonBasic } from "@/lib/types";
-import { isTouchDevice } from "@/utils/utils";
 
-import { ChevronRight } from "lucide-react";
+import { cn, isTouchDevice } from "@/utils/utils";
 
 interface EvolutionNodeProps {
   nodeId: number;

@@ -1,13 +1,13 @@
 "use client";
 import { useState, useRef } from "react";
 
+import { EvolutionBranch } from "@/components/molecules/EvolutionBranch";
+import { EvolutionNode } from "@/components/molecules/EvolutionNode";
+
 import { ProcessedEvolvesTo, pokemonBasic } from "@/lib/types";
+
 import useGetElementProperty from "@/hooks/useGetElementProperty";
 import useWindowWidth from "@/hooks/useWindowWidth";
-
-import { EvolutionNode } from "@/components/EvolutionNode";
-import { EvolutionBranch } from "@/components/EvolutionBranch";
-
 import { Vector } from "@/utils/Vector";
 
 /**

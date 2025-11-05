@@ -16,7 +16,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 
-interface PaginationComponentProps {
+interface PaginationButtonsProps {
   pagination: PaginationInfo;
   basePath: string;
 }
@@ -41,10 +41,10 @@ export function PaginationCounter({ pagination }: PaginationCounterProps) {
   );
 }
 
-export function PaginationComponent({
+export function PaginationButtons({
   pagination,
   basePath,
-}: PaginationComponentProps) {
+}: PaginationButtonsProps) {
   const queryParmStr =
     basePath.indexOf("?") > 0
       ? basePath.substring(basePath.indexOf("?") + 1)

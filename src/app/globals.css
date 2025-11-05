@@ -214,9 +214,6 @@
   .pokemon-id {
     @apply text-xs font-semibold text-gray-400;
   }
-  .pokemon-name {
-    @apply font-semibold text-primary-950;
-  }
 
   .page-transition-animation {
     @apply block;

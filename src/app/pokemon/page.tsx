@@ -1,18 +1,18 @@
-import { Loading } from "@/components/Loading";
-
-import { Suspense } from "react";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
+import { TransitionReset } from "@/components/atoms/TransitionLink";
+import { PokemonCard } from "@/components/molecules/PokemonCard";
+import { Loading } from "@/components/organisms/Loading";
 import {
   PaginationCounter,
-  PaginationComponent,
-} from "@/components/Pagination/component";
-import { PokemonCard } from "@/components/PokemonCard";
-import { getProcessedPokemonList } from "@/lib/pokeapi";
-import { LIST_PER_PAGE } from "@/lib/constants";
-import { Paginator } from "@/utils/Paginator";
+  PaginationButtons,
+} from "@/components/organisms/Pagination";
 
-import { TransitionReset } from "@/components/TransitionLink";
+import { LIST_PER_PAGE } from "@/lib/constants";
+import { getProcessedPokemonList } from "@/lib/pokeapi";
+
+import { Paginator } from "@/utils/Paginator";
 
 interface SearchParams {
   page?: string;
@@ -71,10 +71,10 @@ async function PokemonListContent({ page }: { page: number }) {
           <div className="error-message">表示するポケモンがありません</div>
         )}
 
-        <PaginationComponent
+        <PaginationButtons
           pagination={pagination}
           basePath={"/pokemon"}
-        ></PaginationComponent>
+        ></PaginationButtons>
       </>
     );
   } catch {

@@ -1,10 +1,10 @@
 "use client";
-import Image from "next/image";
 import clsx from "clsx";
-import { usePathname } from "next/navigation";
 import { House, Grid3x2, Search } from "lucide-react";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 
-import { TransitionLink } from "@/components/TransitionLink";
+import { TransitionLink } from "@/components/atoms/TransitionLink";
 
 export function Header() {
   const pathname = usePathname();
