@@ -12,7 +12,6 @@ import {
   PokemonAbilityDetail,
   ProcessedPokemon,
   PokemonForSearch,
-  PaginationInfo,
   EvolutionChain,
   ProcessedEvolutionChain,
   EvolvesTo,
@@ -20,6 +19,8 @@ import {
   EvolutionDetail,
   ProcessedEvolutionDetail,
 } from "@/lib/types";
+
+import { PaginationInfo } from "@/utils/Paginator";
 
 import {
   BASE_URL,
@@ -29,7 +30,7 @@ import {
   defaultObject,
 } from "@/lib/constants";
 
-import { doFetchByDivision } from "@/lib/functions";
+import { doFetchByDivision } from "@/utils/utils";
 
 /**
  * APIリクエスト
@@ -83,10 +84,8 @@ export async function getProcessedPokemonList(
 
   const pagination = {
     currentPage: page,
-    totalPages: totalPages,
-    hasNext: next != null && page + 1 <= totalPages,
-    hasPrev: previous != null && page > 1,
     totalCount: count,
+    perPage: limit,
   };
 
   const pokemonIDs = pokemonListRes.results.map((pokemon) =>

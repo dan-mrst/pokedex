@@ -5,10 +5,10 @@ import Image from "next/image";
 
 import { ProcessedEvolutionDetail, pokemonBasic } from "@/lib/types";
 import { evolutionTriggerTranslations, NODE_Z_INDEX } from "@/lib/constants";
-import { toDegrees } from "@/lib/functions";
+import { toDegrees } from "@/utils/utils";
 
-import useGetElementProperty from "@/lib/UseGetElementProperty";
-import { Vector } from "@/lib/Vector";
+import useGetElementProperty from "@/hooks/useGetElementProperty";
+import { Vector } from "@/utils/Vector";
 
 interface EvolutionBranchProps {
   parent?: pokemonBasic;
@@ -60,7 +60,7 @@ export function EvolutionBranch({
         return sum + detail.requirements.length;
       }, 0));
 
-  const DETAIL_WIDTH = isHorizontal ? 120 : 200;
+  const DETAIL_WIDTH = isHorizontal ? 120 : 176;
   const DETAIL_HEIGHT =
     detailRect.height > 0 ? detailRect.height : provisionalDH;
 

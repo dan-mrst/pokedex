@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import styles from "./header.module.css";
 import { House, Grid3x2, Search } from "lucide-react";
 
-import { TransitionLink } from "@/components/transition-link";
+import { TransitionLink } from "@/components/TransitionLink";
 
 export function Header() {
   const pathname = usePathname();

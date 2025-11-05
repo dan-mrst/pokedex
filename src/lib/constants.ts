@@ -12,11 +12,6 @@ import {
 export const BASE_URL = "https://pokeapi.co/api/v2";
 
 /**
- * localStorageのキー
- */
-export const LOCAL_STORAGE_APP_KEY = "mypokedex";
-
-/**
  * 一覧ページのページング単位
  */
 export const LIST_PER_PAGE = 20;

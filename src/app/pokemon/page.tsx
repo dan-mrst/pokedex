@@ -1,15 +1,18 @@
-import { Loading } from "@/components/loading";
+import { Loading } from "@/components/Loading";
 
 import { Suspense } from "react";
 import { Metadata } from "next";
 
-import { PaginationComponent } from "@/components/pagination/component";
-import { PokemonCard } from "@/components/pokemon-card";
+import {
+  PaginationCounter,
+  PaginationComponent,
+} from "@/components/Pagination/component";
+import { PokemonCard } from "@/components/PokemonCard";
 import { getProcessedPokemonList } from "@/lib/pokeapi";
 import { LIST_PER_PAGE } from "@/lib/constants";
+import { Paginator } from "@/utils/Paginator";
 
-import { TransitionLink } from "@/components/transition-link";
-import { TransitionReset } from "@/components/transition-link";
+import { TransitionReset } from "@/components/TransitionLink";
 
 interface SearchParams {
   page?: string;
@@ -29,18 +32,13 @@ export async function generateMetadata({
 
 export default async function PokemonListPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
-  const currentPage =
-    typeof resolvedParams.page === "undefined"
-      ? 1
-      : isNaN(Number(resolvedParams.page))
-      ? 0
-      : Number(resolvedParams.page);
+  const currentPage = Paginator.getPageByParam(resolvedParams.page);
 
   return (
     <div className="wrapper">
       <TransitionReset />
       <h1>
-        ポケモン一覧<span className="h1__sub">POKEMONS LIST</span>
+        ポケモン一覧<span className="h1-sub">POKEMONS LIST</span>
       </h1>
       <Suspense fallback={<Loading />}>
         <PokemonListContent page={currentPage} />
@@ -52,28 +50,32 @@ export default async function PokemonListPage({ searchParams }: Props) {
 async function PokemonListContent({ page }: { page: number }) {
   try {
     const processedList = await getProcessedPokemonList(page, LIST_PER_PAGE);
+
+    const pokemon = processedList.pokemon;
+
+    const pagination = processedList.pagination;
+    const paginator = new Paginator(processedList.pagination);
+
     return (
-      <div>
-        {page > 0 && processedList.pokemon.length > 0 && (
+      <>
+        <PaginationCounter pagination={pagination} />
+        {paginator.isCorrectPage() ? (
           <ul className="pokemons-list">
-            {processedList.pokemon.map((item) => (
+            {pokemon.map((item) => (
               <li key={item.id}>
                 <PokemonCard pokemon={item}></PokemonCard>
               </li>
             ))}
           </ul>
-        )}
-        {(page <= 0 || processedList.pokemon.length <= 0) && (
-          <div className="text-center text-sm text-gray-400">
-            表示するポケモンがありません
-          </div>
+        ) : (
+          <div className="error-message">表示するポケモンがありません</div>
         )}
 
         <PaginationComponent
-          pagination={processedList.pagination}
+          pagination={pagination}
           basePath={"/pokemon"}
         ></PaginationComponent>
-      </div>
+      </>
     );
   } catch {
     return <div>ERROR</div>;

@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Loading } from "@/components/loading";
-import { ToList } from "@/components/to-list";
+import { Loading } from "@/components/Loading";
+import { ToList } from "@/components/ToList";
 import {
   Card,
   CardHeader,
@@ -74,8 +74,8 @@ async function PokemonDetailContent({ id }: { id: number }) {
   return (
     <>
       <nav className="flex justify-between">
-        {prev ? (
-          <Link className={`${styles.anchor}`} href={`./${prev.id}`}>
+        {prev && prev.id > 0 ? (
+          <Link className={styles.anchor} href={`./${prev.id}`}>
             <ChevronLeft size={40} />
             <div className={styles.anchorInner}>
               <Image
@@ -87,7 +87,7 @@ async function PokemonDetailContent({ id }: { id: number }) {
               />
               <div className={styles.anchorText}>
                 <div className="pokemon-id">
-                  <span className="hidden md:inline">No.</span>
+                  <span className={styles.anchorNoText}>No.</span>
                   {prev.id.toString().padStart(3, "0")}
                 </div>
                 <div className={styles.anchorName}>{prev.japaneseName}</div>
@@ -97,11 +97,8 @@ async function PokemonDetailContent({ id }: { id: number }) {
         ) : (
           <Button className="invisible"></Button>
         )}
-        {next ? (
-          <Link
-            className={`${styles.anchor} text-primary-900 hover:text-primary-500`}
-            href={`./${next.id}`}
-          >
+        {next && next.id > 0 ? (
+          <Link className={styles.anchor} href={`./${next.id}`}>
             <div className={styles.anchorInner}>
               <Image
                 src={next.imageUrl}
@@ -112,7 +109,7 @@ async function PokemonDetailContent({ id }: { id: number }) {
               />
               <div className={styles.anchorText}>
                 <div className="pokemon-id">
-                  <span className="hidden md:inline">No.</span>
+                  <span className={styles.anchorNoText}>No.</span>
                   {next.id.toString().padStart(3, "0")}
                 </div>
                 <div className={styles.anchorName}>{next.japaneseName}</div>
@@ -145,7 +142,7 @@ async function PokemonDetailContent({ id }: { id: number }) {
               alt=""
               className="object-contain"
             />
-            <dl className="flex gap-4 items-center">
+            <dl className="flex gap-4 items-center mt-2">
               <div className={styles.figureItem}>
                 <dt>高さ</dt>
                 <dd>

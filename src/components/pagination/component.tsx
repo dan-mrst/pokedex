@@ -1,6 +1,11 @@
 "use client";
 
-import { PaginationInfo } from "@/lib/types";
+import {
+  PaginationInfo,
+  Paginator,
+  PaginationOmitter,
+} from "@/utils/Paginator";
+
 import {
   Pagination,
   PaginationContent,
@@ -14,6 +19,26 @@ import {
 interface PaginationComponentProps {
   pagination: PaginationInfo;
   basePath: string;
+}
+interface PaginationCounterProps {
+  pagination: PaginationInfo;
+}
+
+export function PaginationCounter({ pagination }: PaginationCounterProps) {
+  const paginator = new Paginator(pagination);
+
+  return (
+    paginator.shouldPaginate() && (
+      <div className="mt-4 w-fit mx-auto text-gray-400">
+        <span className="text-base">
+          {paginator.isCorrectPage()
+            ? `${paginator.firstItemOfCurrentPage()} - ${paginator.lastItemOfCurrentPage()}`
+            : "--"}
+        </span>
+        <span className="mt-0.5 text-sm">／{`${paginator.totalCount}`}</span>
+      </div>
+    )
+  );
 }
 
 export function PaginationComponent({
@@ -30,16 +55,23 @@ export function PaginationComponent({
       ? basePath + "?"
       : basePath.substring(0, basePath.indexOf("?")) + `?${queryParmStr}&`;
 
-  const { currentPage, totalPages, hasNext, hasPrev } = pagination;
+  const paginator = new Paginator({ ...pagination });
+  const { currentPage, totalPages, hasNext, hasPrev } = paginator;
 
-  const RANGE = 2;
-  const LEFT_BOUNDARY = 3; //1+2
-  const RIGHT_BOUNDARY = totalPages - 2;
+  const omitter = new PaginationOmitter(paginator, 2);
+
+  const {
+    shouldShowOmittedLeft,
+    shouldShowPageInLeft,
+    isPageWithinRange,
+    shouldShowPageInRight,
+    shouldShowOmittedRight,
+  } = omitter;
 
   return (
     <Pagination className="mt-8 text-primary-900">
-      <PaginationContent>
-        {hasPrev && (
+      <PaginationContent className="flex-wrap">
+        {hasPrev() && (
           <PaginationItem>
             <PaginationPrevious
               href={baseQuery + `page=${currentPage - 1}`}
@@ -50,7 +82,7 @@ export function PaginationComponent({
           </PaginationItem>
         )}
 
-        {currentPage - RANGE > LEFT_BOUNDARY && (
+        {shouldShowOmittedLeft() && (
           <>
             <PaginationItem key={1}>
               <PaginationLink
@@ -68,28 +100,13 @@ export function PaginationComponent({
 
         {Array(totalPages)
           .fill(0)
-          .map((v, p) => p + 1)
-          .filter((p) => {
-            /**
-             * 1 … 3 4のような省略は無意味なので左範囲をすべて表示
-             */
-            const shouldShowLeft =
-              currentPage - RANGE <= LEFT_BOUNDARY && p < LEFT_BOUNDARY;
-
-            /**
-             * 基本の表示範囲
-             */
-            const isPWithinRange =
-              p >= currentPage - RANGE && p <= currentPage + RANGE;
-
-            /**
-             * 7 8 … 10のような省略は無意味なので右範囲をすべて表示
-             */
-            const shouldShowRight =
-              currentPage + RANGE >= RIGHT_BOUNDARY && p > RIGHT_BOUNDARY;
-
-            return shouldShowLeft || isPWithinRange || shouldShowRight;
-          })
+          .map((_, p) => p + 1)
+          .filter(
+            (p) =>
+              shouldShowPageInLeft(p) ||
+              isPageWithinRange(p) ||
+              shouldShowPageInRight(p)
+          )
           .map((p) => (
             <PaginationItem key={p}>
               <PaginationLink
@@ -101,7 +118,7 @@ export function PaginationComponent({
             </PaginationItem>
           ))}
 
-        {currentPage + RANGE < RIGHT_BOUNDARY && (
+        {shouldShowOmittedRight() && (
           <>
             <PaginationItem>
               <PaginationEllipsis />
@@ -116,7 +133,7 @@ export function PaginationComponent({
             </PaginationItem>
           </>
         )}
-        {hasNext && (
+        {hasNext() && (
           <PaginationItem>
             <PaginationNext
               href={baseQuery + `page=${currentPage + 1}`}

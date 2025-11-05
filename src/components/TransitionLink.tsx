@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 
 interface Props {
   href: string;

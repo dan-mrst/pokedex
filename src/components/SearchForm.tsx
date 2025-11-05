@@ -25,7 +25,7 @@ export function SearchForm({ initialQuery = "" }: SearchFormProps) {
     formState: { errors, isSubmitting },
     reset,
   } = useForm<FormValues>({
-    defaultValues: { query: "" },
+    defaultValues: { query: initialQuery },
     mode: "onChange",
   });
 
@@ -60,7 +60,6 @@ export function SearchForm({ initialQuery = "" }: SearchFormProps) {
             })}
             aria-invalid={!!errors.query || undefined}
             onBlur={handleBlur}
-            defaultValue={initialQuery}
           ></Input>
           <Button
             variant="default"

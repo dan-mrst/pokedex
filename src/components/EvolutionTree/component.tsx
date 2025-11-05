@@ -2,13 +2,13 @@
 import { useState, useRef } from "react";
 
 import { ProcessedEvolvesTo, pokemonBasic } from "@/lib/types";
-import useGetElementProperty from "@/lib/UseGetElementProperty";
-import useWindowWidth from "@/lib/UseWindowWidth";
+import useGetElementProperty from "@/hooks/useGetElementProperty";
+import useWindowWidth from "@/hooks/useWindowWidth";
 
-import { EvolutionNode } from "@/components/evolution-node/component";
-import { EvolutionBranch } from "@/components/evolution-branch/component";
+import { EvolutionNode } from "@/components/EvolutionNode/component";
+import { EvolutionBranch } from "@/components/EvolutionBranch/component";
 
-import { Vector } from "@/lib/Vector";
+import { Vector } from "@/utils/Vector";
 
 /**
  * 表示確認用

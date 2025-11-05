@@ -251,14 +251,3 @@ export interface EvolutionTrigger {
   names: Name[];
   pokemon_species: NamedApiResource[];
 }
-
-/**
- * ページネーション情報
- */
-export interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-  totalCount: number;
-}

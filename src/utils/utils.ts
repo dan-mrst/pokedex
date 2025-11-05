@@ -1,3 +1,13 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+/**
+ * tailwind
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
 /**
  * ひらがな文字列をカタカナ文字列に変換
  * @param hira ひらがな文字列

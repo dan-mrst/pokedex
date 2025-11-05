@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 
 import Link from "next/link";
 import Image from "next/image";
 import { NODE_Z_INDEX } from "@/lib/constants";
 import { pokemonBasic } from "@/lib/types";
-import { isTouchDevice } from "@/lib/functions";
+import { isTouchDevice } from "@/utils/utils";
 
 import { ChevronRight } from "lucide-react";
 

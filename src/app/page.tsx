@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Grid3x2, Search } from "lucide-react";
 
-import { TransitionLink, TransitionReset } from "@/components/transition-link";
+import { TransitionLink, TransitionReset } from "@/components/TransitionLink";
 
 export default function Home() {
   return (

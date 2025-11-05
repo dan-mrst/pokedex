@@ -16,6 +16,10 @@
   @apply flex items-center gap-1 md:flex-col md:gap-0;
 }
 
+.anchorNoText {
+  @apply hidden md:inline;
+}
+
 .anchorName {
   @apply font-semibold mt-0 md:mt-0.5 text-sm md:text-base;
 }
@@ -42,7 +46,7 @@
 }
 
 .figureItem {
-  @apply flex gap-4 items-baseline;
+  @apply flex gap-4 items-baseline text-sm;
 }
 
 .figureNumber {

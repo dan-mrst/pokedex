@@ -2,14 +2,15 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { Loading } from "@/components/loading";
-import { ToList } from "@/components/to-list";
+import { Loading } from "@/components/Loading";
+import { ToList } from "@/components/ToList";
+import { ToggleByIsTouch } from "@/components/ToggleByIsTouch";
 
 import { Undo2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { EvolutionTree } from "@/components/evolution-tree/component";
+import { EvolutionTree } from "@/components/EvolutionTree/component";
 
 import {
   getProcessedPokemon,
@@ -65,7 +66,22 @@ async function EvolutionDetailContent({ id }: { id: number }) {
           ポケモンの詳細に戻る
         </Link>
       </Button>
-      <div className="py-8 md:overflow-auto">
+      <div className="mt-4 app-orientation">
+        <p>
+          ポケモン
+          <ToggleByIsTouch
+            touch={"をタップする"}
+            click={"にカーソルを合わせる"}
+          />
+          と進化の分岐と条件の詳細がハイライトされます。
+        </p>
+        <p>
+          各ポケモンを
+          <ToggleByIsTouch touch={"もう一度タップ"} click={"クリック"} />
+          するとポケモンの詳細を見ることができます。
+        </p>
+      </div>
+      <div data-part="tree-wrapper" className="py-8 md:overflow-x-hidden">
         <EvolutionTree
           nodeId={0}
           pokemon={chain}

@@ -1,21 +1,26 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 
-import { PokemonCard } from "@/components/pokemon-card";
-import { PaginationComponent } from "@/components/pagination/component";
-import { SearchForm } from "@/components/search-form";
-import { Loading } from "@/components/loading";
-import { ToList } from "@/components/to-list";
+import { PokemonCard } from "@/components/PokemonCard";
+import {
+  PaginationCounter,
+  PaginationComponent,
+} from "@/components/Pagination/component";
+import { SearchForm } from "@/components/SearchForm";
+import { Loading } from "@/components/Loading";
+import { ToList } from "@/components/ToList";
 
 import {
   POKEMON_ID_UPPER,
   getPokemonSearchList,
   getProcessedPokemon,
 } from "@/lib/pokeapi";
-import { PaginationInfo, ProcessedPokemon } from "@/lib/types";
+
+import { ProcessedPokemon } from "@/lib/types";
+import { PaginationInfo, Paginator } from "@/utils/Paginator";
 import { SEARCH_PER_PAGE } from "@/lib/constants";
-import { hiraToKata } from "@/lib/functions";
-import { TransitionReset } from "@/components/transition-link";
+import { hiraToKata } from "@/utils/utils";
+import { TransitionReset } from "@/components/TransitionLink";
 
 interface SearchParams {
   q?: string;
@@ -39,16 +44,23 @@ export async function generateMetadata({
 export default async function SearchPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || "";
-  const page = Number(resolvedParams.page) || 1;
+  const page = Paginator.getPageByParam(resolvedParams.page);
 
   const kata = hiraToKata(query);
   const matchedPokemonList = pokemonSearchList.filter((pokemon) => {
     return pokemon.japaneseName.indexOf(kata) >= 0;
   });
 
-  const pagedPokemonList = matchedPokemonList.filter(
-    (pokemon, i) =>
-      i > SEARCH_PER_PAGE * (page - 1) - 1 && i < SEARCH_PER_PAGE * page
+  const pagination: PaginationInfo = {
+    currentPage: page,
+    totalCount: matchedPokemonList.length,
+    perPage: SEARCH_PER_PAGE,
+  };
+
+  const paginator = new Paginator(pagination);
+
+  const pagedPokemonList = matchedPokemonList.filter((_, i) =>
+    paginator.isItemInCurrentPage(i)
   );
   const processedList = await Promise.allSettled(
     pagedPokemonList.map((pokemon) => getProcessedPokemon(pokemon.id))
@@ -58,22 +70,13 @@ export default async function SearchPage({ searchParams }: Props) {
       .map((data) => data.value)
   );
 
-  const totalPages = Math.ceil(matchedPokemonList.length / SEARCH_PER_PAGE);
-
-  const pagination: PaginationInfo = {
-    currentPage: page,
-    totalPages: totalPages,
-    hasNext: page + 1 <= totalPages,
-    hasPrev: page > 1,
-    totalCount: matchedPokemonList.length,
-  };
   return (
     <div className="wrapper">
       <TransitionReset />
       <h1>
-        ポケモン検索<span className="h1__sub">SEARCH</span>
+        ポケモン検索<span className="h1-sub">SEARCH</span>
       </h1>
-      <div className="text-center text-gray-500 text-sm">
+      <div className="app-orientation">
         <p>ポケモンの名前を入力してください。</p>
         <p>ひらがなまたはカタカナに対応しています。</p>
       </div>
@@ -105,44 +108,26 @@ function PokemonSearchResult({
   processedList: ProcessedPokemon[];
   pagination: PaginationInfo;
 }) {
+  const paginator = new Paginator(pagination);
   return (
     <div className="mt-12">
       <div className="text-sm text-gray-500">
-        <p>{`「${query}」の検索結果：${pagination.totalCount}件${
-          pagination.totalCount > 0 ? "見つかりました" : ""
+        <p>{`「${query}」の検索結果：${paginator.totalCount}件${
+          paginator.totalCount > 0 ? "見つかりました" : ""
         }`}</p>
       </div>
-      {pagination.totalCount > 0 &&
-        pagination.currentPage <= pagination.totalPages && (
-          <div className="mt-4 w-fit mx-auto text-gray-400">
-            <span className="text-base">
-              {`${
-                SEARCH_PER_PAGE * (pagination.currentPage - 1) + 1
-              } - ${Math.min(
-                pagination.totalCount,
-                SEARCH_PER_PAGE * pagination.currentPage
-              )}`}
-            </span>
-            <span className="mt-0.5 text-sm">
-              ／{`${pagination.totalCount}`}
-            </span>
-          </div>
-        )}
-      {pagination.currentPage <= pagination.totalPages && (
+      <PaginationCounter pagination={pagination} />
+      {paginator.isCorrectPage() ? (
         <ul className="pokemons-list">
           {processedList.map((item) => (
             <li key={item.id}>
-              <PokemonCard pokemon={item}></PokemonCard>
+              <PokemonCard pokemon={item} />
             </li>
           ))}
         </ul>
+      ) : (
+        <div className="error-message">ページ指定が誤っています</div>
       )}
-      {pagination.totalCount != 0 &&
-        pagination.currentPage > pagination.totalPages && (
-          <div className="text-center text-sm text-gray-400 mt-2">
-            ページ指定が誤っています
-          </div>
-        )}
 
       <PaginationComponent
         pagination={pagination}
