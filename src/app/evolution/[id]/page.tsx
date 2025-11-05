@@ -10,7 +10,7 @@ import { Undo2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { EvolutionTree } from "@/components/EvolutionTree/component";
+import { EvolutionTree } from "@/components/EvolutionTree";
 
 import {
   getProcessedPokemon,

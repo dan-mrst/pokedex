@@ -5,8 +5,8 @@ import { ProcessedEvolvesTo, pokemonBasic } from "@/lib/types";
 import useGetElementProperty from "@/hooks/useGetElementProperty";
 import useWindowWidth from "@/hooks/useWindowWidth";
 
-import { EvolutionNode } from "@/components/EvolutionNode/component";
-import { EvolutionBranch } from "@/components/EvolutionBranch/component";
+import { EvolutionNode } from "@/components/EvolutionNode";
+import { EvolutionBranch } from "@/components/EvolutionBranch";
 
 import { Vector } from "@/utils/Vector";
 

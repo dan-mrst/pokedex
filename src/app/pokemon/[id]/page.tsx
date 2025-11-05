@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { ReactNode, Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,9 +22,8 @@ import {
   getProcessedPokemon,
   getPokemonForSearch,
 } from "@/lib/pokeapi";
+import { ProcessedPokemon } from "@/lib/types";
 import { typeTranslations, typeTextColor } from "@/lib/constants";
-
-import styles from "./pokemon.module.css";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -74,52 +73,8 @@ async function PokemonDetailContent({ id }: { id: number }) {
   return (
     <>
       <nav className="flex justify-between">
-        {prev && prev.id > 0 ? (
-          <Link className={styles.anchor} href={`./${prev.id}`}>
-            <ChevronLeft size={40} />
-            <div className={styles.anchorInner}>
-              <Image
-                src={prev.imageUrl}
-                width={72}
-                height={72}
-                alt=""
-                className={styles.anchorImage}
-              />
-              <div className={styles.anchorText}>
-                <div className="pokemon-id">
-                  <span className={styles.anchorNoText}>No.</span>
-                  {prev.id.toString().padStart(3, "0")}
-                </div>
-                <div className={styles.anchorName}>{prev.japaneseName}</div>
-              </div>
-            </div>
-          </Link>
-        ) : (
-          <Button className="invisible"></Button>
-        )}
-        {next && next.id > 0 ? (
-          <Link className={styles.anchor} href={`./${next.id}`}>
-            <div className={styles.anchorInner}>
-              <Image
-                src={next.imageUrl}
-                width={72}
-                height={72}
-                alt=""
-                className={styles.anchorImage}
-              />
-              <div className={styles.anchorText}>
-                <div className="pokemon-id">
-                  <span className={styles.anchorNoText}>No.</span>
-                  {next.id.toString().padStart(3, "0")}
-                </div>
-                <div className={styles.anchorName}>{next.japaneseName}</div>
-              </div>
-            </div>
-            <ChevronRight size={40} className="shrink-0" />
-          </Link>
-        ) : (
-          <Button className="invisible"></Button>
-        )}
+        <NavAnchor pokemon={prev} variant={"left"} />
+        <NavAnchor pokemon={next} variant={"right"} />
       </nav>
       <Card className="h-full mt-8" data-name={pokemon.name}>
         <CardHeader className="text-center">
@@ -143,83 +98,77 @@ async function PokemonDetailContent({ id }: { id: number }) {
               className="object-contain"
             />
             <dl className="flex gap-4 items-center mt-2">
-              <div className={styles.figureItem}>
+              <FigureItem>
                 <dt>高さ</dt>
                 <dd>
-                  <span className={styles.figureNumber}>
+                  <FigureNumber>
                     {(pokemon.height / 10).toFixed(1)}
-                  </span>
+                  </FigureNumber>
                   m
                 </dd>
-              </div>
+              </FigureItem>
               ／
-              <div className={styles.figureItem}>
+              <FigureItem>
                 <dt>重さ</dt>
                 <dd>
-                  <span className={styles.figureNumber}>
+                  <FigureNumber>
                     {(pokemon.weight / 10).toFixed(1)}
-                  </span>
-                  kg
+                  </FigureNumber>
+                  m
                 </dd>
-              </div>
+              </FigureItem>
             </dl>
           </div>
-          <div className={styles.detail}>
-            <div className={styles.item}>
-              <h2 className={styles.title}>タイプ</h2>
-              <div className={styles.content}>
-                <ul className={styles.types}>
-                  {pokemon.types.length > 0 &&
-                    pokemon.types.map((type: string, i: number) => (
-                      <li key={i}>
-                        <Badge
-                          className={`bg-type-${type} text-${typeTextColor(
-                            type
-                          )}`}
-                        >
-                          {typeTranslations[type]}
-                        </Badge>
-                      </li>
-                    ))}
-                  {pokemon.types.length <= 0 && (
-                    <Badge variant={"default"}>--</Badge>
-                  )}
-                </ul>
-              </div>
-            </div>
-            <div className={styles.item}>
-              <h2 className={styles.title}>特性</h2>
-              <div className={styles.content}>
-                <dl className="flex flex-col gap-4">
-                  {pokemon.abilities.length > 0 &&
-                    pokemon.abilities.map((ability, i) => {
-                      return (
-                        <div
-                          key={i}
-                          className="border border-gray-500 rounded-lg relative overflow-hidden"
-                        >
-                          <dt className="px-2 py-1 bg-gray-700 text-white  flex justify-between items-center">
-                            {ability.japaneseName}
-                            {ability.is_hidden && (
-                              <div className="px-2 py-1 bg-white text-gray-700 text-sm w-fit leading-none rounded-sm font-bold">
-                                隠れ特性
-                              </div>
-                            )}
-                          </dt>
-                          <dd>
-                            <div className="text-sm text-gray-600 px-3 py-2">
-                              {ability.flavor_text}
+          <div className="flex flex-col gap-4">
+            <PokemonDetailItem title={"タイプ"}>
+              <ul className="flex gap-2">
+                {pokemon.types.length > 0 &&
+                  pokemon.types.map((type: string, i: number) => (
+                    <li key={i}>
+                      <Badge
+                        className={`bg-type-${type} text-${typeTextColor(
+                          type
+                        )}`}
+                      >
+                        {typeTranslations[type]}
+                      </Badge>
+                    </li>
+                  ))}
+                {pokemon.types.length <= 0 && (
+                  <Badge variant={"default"}>--</Badge>
+                )}
+              </ul>
+            </PokemonDetailItem>
+            <PokemonDetailItem title={"特性"}>
+              <dl className="flex flex-col gap-4">
+                {pokemon.abilities.length > 0 &&
+                  pokemon.abilities.map((ability, i) => {
+                    return (
+                      <div
+                        key={i}
+                        className="border border-gray-500 rounded-lg relative overflow-hidden"
+                      >
+                        <dt className="px-2 py-1 bg-gray-700 text-white  flex justify-between items-center">
+                          {ability.japaneseName}
+                          {ability.is_hidden && (
+                            <div className="px-2 py-1 bg-white text-gray-700 text-sm w-fit leading-none rounded-sm font-bold">
+                              隠れ特性
                             </div>
-                          </dd>
-                        </div>
-                      );
-                    })}
-                  {pokemon.abilities.length <= 0 && (
-                    <div className="text-gray-400">--</div>
-                  )}
-                </dl>
-              </div>
-            </div>
+                          )}
+                        </dt>
+                        <dd>
+                          <div className="text-sm text-gray-600 px-3 py-2">
+                            {ability.flavor_text}
+                          </div>
+                        </dd>
+                      </div>
+                    );
+                  })}
+                {pokemon.abilities.length <= 0 && (
+                  <div className="text-gray-400">--</div>
+                )}
+              </dl>
+            </PokemonDetailItem>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center border-t-1 pt-4">
@@ -248,5 +197,77 @@ async function PokemonDetailContent({ id }: { id: number }) {
         </CardFooter>
       </Card>
     </>
+  );
+}
+
+function NavAnchor({
+  pokemon,
+  variant,
+}: {
+  pokemon: ProcessedPokemon | null;
+  variant: "left" | "right";
+}) {
+  return pokemon && pokemon.id > 0 ? (
+    <Link
+      className="px-2 py-1 rounded-md border border-gray-200 flex gap-1 items-center bg-white text-primary-900 hover:text-primary-500"
+      href={`./${pokemon.id}`}
+    >
+      {variant === "left" && <ChevronLeft size={40} />}
+      <div className="flex flex-col gap-6 md:contents md:gap-10">
+        <Image
+          src={pokemon.imageUrl}
+          width={72}
+          height={72}
+          alt=""
+          className="-my-10 scale-70 md:scale-100"
+        />
+        <div className="flex items-center gap-1 md:flex-col md:gap-0">
+          <div className="pokemon-id">
+            <span className="hidden md:inline">No.</span>
+            {pokemon.id.toString().padStart(3, "0")}
+          </div>
+          <div className="font-semibold mt-0 md:mt-0.5 text-sm md:text-base">
+            {pokemon.japaneseName}
+          </div>
+        </div>
+      </div>
+      {variant === "right" && <ChevronRight size={40} />}
+    </Link>
+  ) : (
+    <Button className="invisible"></Button>
+  );
+}
+
+function PokemonDetailItem({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col">
+      <h2 className="text-xl font-bold mt-2">{title}</h2>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+function FigureItem({
+  children: [title, definition],
+}: {
+  children: ReactNode[];
+}) {
+  return (
+    <div className="flex gap-4 items-baseline text-sm">
+      {title}
+      {definition}
+    </div>
+  );
+}
+
+function FigureNumber({ children }: { children: string }) {
+  return (
+    <span className="text-xl font-bold text-primary-900 mr-1">{children}</span>
   );
 }
