@@ -1,9 +1,7 @@
 "use client";
-import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
-import styles from "./header.module.css";
 import { House, Grid3x2, Search } from "lucide-react";
 
 import { TransitionLink } from "@/components/TransitionLink";
@@ -40,8 +38,8 @@ export function Header() {
                   <TransitionLink
                     href={item.href}
                     className={clsx(
-                      styles.navlink,
-                      pathname === item.href ? styles["navlink--active"] : ""
+                      "font-bold text-secondary-50 hover:text-secondary-400 flex gap-1 flex-col items-center md:flex-row md:gap-2",
+                      pathname === item.href && "text-secondary-400"
                     )}
                   >
                     {item.icon}

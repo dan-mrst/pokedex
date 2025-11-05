@@ -1,4 +1,4 @@
-import { Header } from "@/components/Header/component";
+import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import "@/app/globals.css";
 

@@ -1,8 +1,0 @@
-@reference "tailwindcss";
-
-.navlink {
-  @apply font-bold text-[var(--color-secondary-50)] hover:text-[var(--color-secondary-400)] flex gap-1 flex-col items-center md:flex-row md:gap-2;
-}
-.navlink--active {
-  @apply text-[var(--color-secondary-400)];
-}
