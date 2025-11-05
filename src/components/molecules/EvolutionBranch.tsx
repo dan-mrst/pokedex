@@ -8,7 +8,6 @@ import { ProcessedEvolutionDetail, pokemonBasic } from "@/lib/types";
 
 import useGetElementProperty from "@/hooks/useGetElementProperty";
 import { toDegrees } from "@/utils/utils";
-
 import { Vector } from "@/utils/Vector";
 
 interface EvolutionBranchProps {
