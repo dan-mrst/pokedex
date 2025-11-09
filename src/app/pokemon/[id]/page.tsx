@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 
+import { Loading } from "@/components/atoms/Loading";
 import { ToList } from "@/components/atoms/ToList";
-import { Loading } from "@/components/organisms/Loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

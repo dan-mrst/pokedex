@@ -1,15 +1,15 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 
+import { Loading } from "@/components/atoms/Loading";
 import { ToList } from "@/components/atoms/ToList";
 import { TransitionReset } from "@/components/atoms/TransitionLink";
 import { PokemonCard } from "@/components/molecules/PokemonCard";
-import { SearchForm } from "@/components/molecules/SearchForm";
-import { Loading } from "@/components/organisms/Loading";
 import {
   PaginationCounter,
   PaginationButtons,
 } from "@/components/organisms/Pagination";
+import { SearchForm } from "@/components/organisms/SearchForm";
 
 import { SEARCH_PER_PAGE } from "@/lib/constants";
 import {

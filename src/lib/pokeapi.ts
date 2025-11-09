@@ -127,7 +127,7 @@ async function processPokemon(pokemon: Pokemon): Promise<ProcessedPokemon> {
     types: pokemon.types.map((t) => t.type.name),
     height: pokemon.height,
     weight: pokemon.weight,
-    genus: getJapaneseGenus(speciesDetail.genera) ?? "",
+    genus: getJapaneseGenus(speciesDetail.genera) ?? "分類なし",
     abilities: processedAbilities,
   };
 

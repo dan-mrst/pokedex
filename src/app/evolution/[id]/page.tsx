@@ -3,10 +3,10 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { Loading } from "@/components/atoms/Loading";
 import { ToggleByIsTouch } from "@/components/atoms/ToggleByIsTouch";
 import { ToList } from "@/components/atoms/ToList";
 import { EvolutionTree } from "@/components/molecules/EvolutionTree";
-import { Loading } from "@/components/organisms/Loading";
 import { Button } from "@/components/ui/button";
 
 import {

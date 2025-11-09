@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 
+import { Loading } from "@/components/atoms/Loading";
 import { TransitionReset } from "@/components/atoms/TransitionLink";
 import { PokemonCard } from "@/components/molecules/PokemonCard";
-import { Loading } from "@/components/organisms/Loading";
 import {
   PaginationCounter,
   PaginationButtons,
